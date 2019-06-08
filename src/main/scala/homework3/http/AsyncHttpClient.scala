@@ -12,8 +12,10 @@ class AsyncHttpClient extends HttpClient {
 
   private def toHttpResponse(response: Response): HttpResponse = new HttpResponse {
     def status: Int = response.getStatusCode
+
     def headers: Map[String, String] = response.getHeaders.asScala.map(
       es => (es.getKey.toLowerCase, es.getValue)).toMap
+
     def bodyAsBytes: Array[Byte] = response.getResponseBodyAsBytes
 
     response.getContentType

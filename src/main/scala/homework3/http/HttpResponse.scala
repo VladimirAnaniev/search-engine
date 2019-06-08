@@ -6,7 +6,9 @@ import org.asynchttpclient.util.{HttpUtils => AsyncHttpUtils}
 
 trait HttpResponse {
   def status: Int
+
   def headers: Map[String, String]
+
   def bodyAsBytes: Array[Byte]
 
   def body: String = {
@@ -23,7 +25,9 @@ trait HttpResponse {
   }
 
   def isSuccess: Boolean = 200 <= status && status < 300
+
   def isClientError: Boolean = 400 <= status && status < 500
+
   def isServerError: Boolean = 500 <= status && status < 600
 }
 

@@ -30,7 +30,7 @@ object SpideyApp {
   }
 
   def main(args: Array[String]): Unit = {
-    if (args.isEmpty /* or arguments are invalid */) printUsage
+    if (args.isEmpty /* or arguments are invalid */ ) printUsage
     else {
       // process arguments
 
