@@ -29,6 +29,8 @@ trait HttpResponse {
   def isClientError: Boolean = 400 <= status && status < 500
 
   def isServerError: Boolean = 500 <= status && status < 600
+
+  def isHTMLResource = if (contentType.isDefined) ContentType.Html == contentType.get.mimeType else false
 }
 
 case class ContentType(mimeType: String, charset: Option[Charset])

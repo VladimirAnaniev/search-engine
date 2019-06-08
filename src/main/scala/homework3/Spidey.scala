@@ -13,6 +13,9 @@ case class SpideyConfig(maxDepth: Int,
 class Spidey(httpClient: HttpClient)(implicit ex: ExecutionContext) {
   def crawl[O: Monoid](url: String, config: SpideyConfig)
                       (processor: Processor[O]): Future[O] = {
-    httpClient.get(url).flatMap(processor(url, _)) // TODO: not implemented fully yet.
+
+    val httpResponse = httpClient.get(url)
+
+    httpResponse.flatMap(processor(url, _)) // TODO: not implemented fully yet.
   }
 }
