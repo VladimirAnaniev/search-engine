@@ -17,8 +17,6 @@ class AsyncHttpClient extends HttpClient {
       es => (es.getKey.toLowerCase, es.getValue)).toMap
 
     def bodyAsBytes: Array[Byte] = response.getResponseBodyAsBytes
-
-    response.getContentType
   }
 
   def get(url: String): Future[HttpResponse] = {
