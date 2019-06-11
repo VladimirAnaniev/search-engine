@@ -8,7 +8,11 @@ libraryDependencies ++= Seq(
   "org.asynchttpclient" % "async-http-client" % "2.8.1",
   "org.jsoup" % "jsoup" % "1.12.1",
 
-  "org.scalatest" %% "scalatest" % "3.0.5" % "test"
+  "org.scalactic" %% "scalactic" % "3.0.5",
+  "org.scalatest" %% "scalatest" % "3.0.5" % "test",
+
+  "ch.qos.logback" % "logback-classic" % "1.2.3",
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
 )
 
 assemblyMergeStrategy in assembly := {
@@ -17,3 +21,5 @@ assemblyMergeStrategy in assembly := {
     val oldStrategy = (assemblyMergeStrategy in assembly).value
     oldStrategy(x)
 }
+
+test in assembly := {}
