@@ -7,7 +7,6 @@ import org.scalatest.{FlatSpec, Matchers}
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext}
-import scala.util.{Failure, Success}
 
 class Test extends FlatSpec with Matchers {
 
