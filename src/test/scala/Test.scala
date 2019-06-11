@@ -17,4 +17,7 @@ class Test extends FlatSpec with Matchers {
   "response from HTTP GET request from https://www.google.com/" should "be html resource" in {
     Await.result(httpClient.get("https://www.google.com/").map(_.isHTMLResource), Duration.Inf) shouldBe true
   }
+
+
+
 }
