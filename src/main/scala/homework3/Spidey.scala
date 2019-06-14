@@ -4,6 +4,7 @@ import homework3.html.HtmlUtils
 import homework3.http._
 import homework3.math.Monoid
 
+import scala.annotation.tailrec
 import scala.collection.immutable.HashSet
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -21,6 +22,7 @@ class Spidey(httpClient: HttpClient)(implicit ex: ExecutionContext) {
       throw new IllegalArgumentException("maxDepth cannot be less than zero!")
     }
 
+    @tailrec
     def crawlRecHelper(visited: HashSet[String], toVisit: List[String], curResult: O, curDepth: Int): O = {
       if (toVisit.isEmpty) {
         curResult
