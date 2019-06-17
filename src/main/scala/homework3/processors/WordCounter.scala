@@ -1,12 +1,11 @@
 package homework3.processors
 
-import java.util.concurrent.Executors
-
 import homework3.Processor
 import homework3.html.HtmlUtils
 import homework3.http.HttpResponse
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 case class WordCount(wordToCount: Map[String, Int])
 
@@ -15,9 +14,6 @@ object WordCount {
 }
 
 object WordCounter extends Processor[WordCount] {
-  val threadPool = Executors.newFixedThreadPool(32)
-  implicit val ec = ExecutionContext.fromExecutor(threadPool)
-
   def apply(url: String, response: HttpResponse): Future[WordCount] = Future {
     if (response.isSuccess && (response.isHTMLResource || response.isPlainTextResource)) {
       WordCount(

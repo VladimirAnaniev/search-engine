@@ -1,23 +1,27 @@
 package homework3
 
-import java.util.concurrent.Executors
-
-import homework3.http.AsyncHttpClient
+import homework3.html.HtmlUtils
+import homework3.http.HttpUtils
 import org.scalatest.{FlatSpec, Matchers}
 
+import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext}
 
 class Test extends FlatSpec with Matchers {
+  val mockHttpClient = new MockHttpClient
 
-  val httpClient = new AsyncHttpClient
-  val threadPool = Executors.newFixedThreadPool(32)
-  implicit val ec = ExecutionContext.fromExecutor(threadPool)
+  "response from MockHttpClient" should "be html resource containing valid http link" in {
+    val httpResponse = Await.result(mockHttpClient.get("https://www.test1.com/"), Duration.Inf)
 
-  "response from HTTP GET request from https://www.google.com/" should "be html resource" in {
-    Await.result(httpClient.get("https://www.google.com/").map(_.isHTMLResource), Duration.Inf) shouldBe true
+    httpResponse.isSuccess shouldBe true
+
+    httpResponse.isHTMLResource shouldBe true
+
+    val links = HtmlUtils.linksOf(httpResponse.body, "https://www.test1.com/")
+
+    links.size shouldBe 1
+    links.foreach(HttpUtils.isValidHttp(_) shouldBe true)
+    links.head shouldBe "https://www.test2.com/"
   }
-
-
 
 }

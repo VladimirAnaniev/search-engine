@@ -4,7 +4,7 @@ import java.util.concurrent.ForkJoinPool
 
 import homework3.html.HtmlUtils
 import homework3.http.AsyncHttpClient
-import homework3.processors.{WordCount, WordCounter}
+import homework3.processors.WordCount
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext}
@@ -33,21 +33,19 @@ object SpideyApp {
 
   def main(args: Array[String]): Unit = {
 
-    // TODO: Figure out how to call crawl
-//    spidey.crawl("https://www.google.com/", SpideyConfig(maxDepth = 0))
+    //    TODO: Figure out how to call crawl
+    //    spidey.crawl("https://www.google.com/", SpideyConfig(maxDepth = 0))
 
-    // println(Await.result(httpClient.get("https://www.google.com/").map(response => WordCount.wordsOf(HtmlUtils.toText(response.body))), Duration.Inf))
+    if (args.isEmpty /* or arguments are invalid */ ) printUsage
+    else {
+      // process arguments
 
-//    if (args.isEmpty /* or arguments are invalid */ ) printUsage
-//    else {
-//      // process arguments
-//
-//      // run Spidey
-//
-//      Await.result(???, Duration.Inf)
-//
-//      // output result
-//    }
+      // run Spidey
+
+      Await.result(???, Duration.Inf)
+
+      // output result
+    }
 
     httpClient.shutdown()
   }

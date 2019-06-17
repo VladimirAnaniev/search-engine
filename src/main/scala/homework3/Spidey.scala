@@ -68,4 +68,6 @@ class Spidey(httpClient: HttpClient)(implicit ex: ExecutionContext) {
 
     crawlRecHelper(HashSet.empty, List(url), Monoid[O].identity, config.maxDepth)
   }
+
+
 }
