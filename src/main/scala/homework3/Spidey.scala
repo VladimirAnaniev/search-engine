@@ -22,6 +22,8 @@ class Spidey(httpClient: HttpClient)(implicit ex: ExecutionContext) {
       throw new IllegalArgumentException("maxDepth cannot be less than zero!")
     }
 
+    import homework3.math.Monoid.ops._
+
     @tailrec
     def crawlRecHelper(visited: HashSet[String], toVisit: List[String], curResult: O, curDepth: Int): O = {
       if (toVisit.isEmpty) {
@@ -37,7 +39,7 @@ class Spidey(httpClient: HttpClient)(implicit ex: ExecutionContext) {
         // process all the responses and wait for result
         val resultFromProcessing = urlAndHttpResponseTuple.map(tuple => processor(tuple._1, tuple._2))
           .map(Await.result(_, Duration.Inf))
-          .foldLeft(implicitly[Monoid[O]].identity)(implicitly[Monoid[O]].op(_, _))
+          .foldLeft(implicitly[Monoid[O]].identity)(_ |+| _)
 
         // TODO SG: As soon as response is received from a given url, start the processor.
         // (Currently we wait for all responses to finish and then begin processing them)
@@ -52,19 +54,20 @@ class Spidey(httpClient: HttpClient)(implicit ex: ExecutionContext) {
                 List.empty
               }
             }),
-            Monoid[O].op(resultFromProcessing, curResult),
+            resultFromProcessing |+| curResult,
             curDepth - 1)
         }
         else {
           crawlRecHelper(
             HashSet.empty,
             List.empty,
-            Monoid[O].op(resultFromProcessing, curResult),
+            resultFromProcessing |+| curResult,
             curDepth - 1
           )
         }
       }
     }
+
 
     crawlRecHelper(HashSet.empty, List(url), Monoid[O].identity, config.maxDepth)
   }

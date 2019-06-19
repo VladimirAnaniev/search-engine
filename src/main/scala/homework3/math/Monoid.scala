@@ -1,5 +1,7 @@
 package homework3.math
 
+import homework3.processors.WordCount
+
 trait Monoid[M] {
   def op(a: M, b: M): M
 
@@ -73,5 +75,14 @@ object Monoid {
     }
 
     def identity: Map[K, V] = Map.empty[K, V]
+  }
+
+  implicit def wordCountMonoid = new Monoid[WordCount] {
+
+    import ops._
+
+    def op(a: WordCount, b: WordCount): WordCount = WordCount(a.wordToCount |+| b.wordToCount)
+
+    def identity: WordCount = WordCount(Map.empty)
   }
 }
