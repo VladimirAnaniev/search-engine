@@ -27,40 +27,30 @@ class Spidey(httpClient: HttpClient)(implicit ex: ExecutionContext) {
 
     @tailrec
     def crawlRecHelper(visited: HashSet[String], toVisit: List[String], curResult: O, curDepth: Int): O = {
-      if (toVisit.isEmpty) {
-        curResult
+      val urlToResponseMap: mutable.Map[String, HttpResponse] = mutable.Map.empty
+
+      val result = toVisit.map(url =>
+        (httpClient.get(url) andThen {
+          case Success(httpResponse) => urlToResponseMap += url -> httpResponse
+        }).flatMap(processor(url, _)))
+        .map(Await.result(_, Duration.Inf))
+        .foldLeft(Monoid[O].identity)(_ |+| _)
+
+      if (curDepth > 0) {
+        crawlRecHelper(
+          visited ++ toVisit,
+          urlToResponseMap.toList.flatMap(keyValuePair => {
+            if (keyValuePair._2.isHTMLResource) {
+              HtmlUtils.linksOf(keyValuePair._2.body, keyValuePair._1).filter(!visited(_))
+            } else {
+              List.empty
+            }
+          }),
+          result |+| curResult,
+          curDepth - 1)
       }
       else {
-        val urlToResponseMap: mutable.Map[String, HttpResponse] = mutable.Map.empty
-
-        val result = toVisit.map(url =>
-          (httpClient.get(url) andThen {
-            case Success(httpResponse) => urlToResponseMap += url -> httpResponse
-          }).flatMap(processor(url, _)))
-          .map(Await.result(_, Duration.Inf))
-          .foldLeft(Monoid[O].identity)(_ |+| _)
-
-        if (curDepth > 0) {
-          crawlRecHelper(
-            visited ++ toVisit,
-            urlToResponseMap.toList.flatMap(keyValuePair => {
-              if (keyValuePair._2.isHTMLResource) {
-                HtmlUtils.linksOf(keyValuePair._2.body, keyValuePair._1).filter(!visited(_))
-              } else {
-                List.empty
-              }
-            }),
-            result |+| curResult,
-            curDepth - 1)
-        }
-        else {
-          crawlRecHelper(
-            HashSet.empty,
-            List.empty,
-            result |+| curResult,
-            curDepth - 1
-          )
-        }
+        result |+| curResult
       }
     }
 
