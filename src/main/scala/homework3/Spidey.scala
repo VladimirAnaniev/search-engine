@@ -41,7 +41,14 @@ class Spidey(httpClient: HttpClient)(implicit ex: ExecutionContext) {
           visited ++ toVisit,
           urlToResponseMap.toList.flatMap(keyValuePair => {
             if (keyValuePair._2.isHTMLResource) {
-              HtmlUtils.linksOf(keyValuePair._2.body, keyValuePair._1).filter(!visited(_))
+              HtmlUtils.linksOf(keyValuePair._2.body, keyValuePair._1).filter(link => {
+                println(keyValuePair._1 + " -> " + link)
+                if (config.sameDomainOnly) {
+                  !visited(link) && HttpUtils.sameDomain(url, link)
+                } else {
+                  !visited(link)
+                }
+              })
             } else {
               List.empty
             }

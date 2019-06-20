@@ -18,20 +18,19 @@ class Test extends FlatSpec with Matchers {
   val mockHttpClient = new MockHttpClient
   val testSpidey = new Spidey(mockHttpClient)
 
-  "response from MockHttpClient" should "be html resource containing valid http link" in {
+  "response from MockHttpClient" should "be html resource containing valid http links" in {
     val httpResponse = getFutureResultBlocking(mockHttpClient.get("https://www.test1.com/"))
 
-    httpResponse.isSuccess shouldBe true
-
-    httpResponse.isHTMLResource shouldBe true
+    httpResponse.isSuccess && httpResponse.isHTMLResource shouldBe true
 
     val links = HtmlUtils.linksOf(httpResponse.body, "https://www.test1.com/")
 
-    links.size shouldBe 1
+    links.size shouldBe 2
     links.foreach(HttpUtils.isValidHttp(_) shouldBe true)
     links.head shouldBe "https://www.test2.com/"
+    links.tail.head shouldBe "https://www.test1.com/service1/"
     WordCount.wordsOf(HtmlUtils.toText(httpResponse.body)) shouldBe
-      List("text", "response", "2")
+      List("text", "response", "1")
   }
 
   "wordCountMonoid" should "add two WordCount instances correctly" in {
@@ -43,25 +42,34 @@ class Test extends FlatSpec with Matchers {
   }
 
   "processors should work correctly and crawl" should "go to only one link when depth is 0" in {
-    getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/", SpideyConfig(0))(WordCounter)).wordToCount shouldBe
-      Map("text" -> 1, "response" -> 1, "2" -> 1)
+    getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/", SpideyConfig(0, sameDomainOnly = false))(WordCounter)).wordToCount shouldBe
+      Map("text" -> 1, "response" -> 1, "1" -> 1)
   }
 
-  it should "go to two links when depth is 1" in {
-    getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/", SpideyConfig(1))(WordCounter)).wordToCount shouldBe
-      Map("text" -> 2, "response" -> 2, "2" -> 1, "3" -> 1)
+  it should "go to three links when depth is 1" in {
+    getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/", SpideyConfig(1, sameDomainOnly = false))(WordCounter)).wordToCount shouldBe
+      Map("text" -> 2, "response" -> 2, "1" -> 1, "2" -> 1, "service1" -> 1)
   }
 
-  it should "go to three links when depth is 2" in {
-    getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/", SpideyConfig(2))(WordCounter)).wordToCount shouldBe
-      Map("text" -> 3, "response" -> 3, "2" -> 1, "3" -> 1, "1" -> 1)
+  it should "go to five links when depth is 2" in {
+    getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/", SpideyConfig(2, sameDomainOnly = false))(WordCounter)).wordToCount shouldBe
+      Map("text" -> 3, "response" -> 3, "1" -> 1, "2" -> 1, "3" -> 1, "service1" -> 1, "service2" -> 1)
   }
 
-  it should "go to all the links when depth is a big number" in {
-    getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/", SpideyConfig(1000))(WordCounter)).wordToCount shouldBe
-      Map("text" -> 3, "response" -> 3, "2" -> 1, "3" -> 1, "1" -> 1)
+  it should "go to six links when depth is 3" in {
+    getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/", SpideyConfig(3, sameDomainOnly = false))(WordCounter)).wordToCount shouldBe
+      Map("text" -> 3, "response" -> 3, "1" -> 1, "2" -> 1, "3" -> 1, "service1" -> 1, "service2" -> 1, "service3" -> 1)
   }
 
+  it should "go to six links when depth is a big number" in {
+    getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/", SpideyConfig(1000, sameDomainOnly = false))(WordCounter)).wordToCount shouldBe
+      Map("text" -> 3, "response" -> 3, "1" -> 1, "2" -> 1, "3" -> 1, "service1" -> 1, "service2" -> 1, "service3" -> 1)
+  }
+
+  it should "go to 4 links when depth is a big number and same domain is true" in {
+    getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/", SpideyConfig(1000, sameDomainOnly = true))(WordCounter)).wordToCount shouldBe
+      Map("text" -> 1, "response" -> 1, "1" -> 1, "service1" -> 1, "service2" -> 1, "service3" -> 1)
+  }
 }
 
 object Test extends App {
@@ -76,4 +84,6 @@ object Test extends App {
   val links = HtmlUtils.linksOf(httpResponse.body, "https://www.test1.com/")
 
   println(WordCount.wordsOf(HtmlUtils.toText(httpResponse.body)))
+
+  println(HttpUtils.sameDomain("https://www.test1.com/", "https://www.test1.com/"))
 }
