@@ -1,7 +1,7 @@
 package homework3.processors
 
 import java.net.URI
-import java.nio.file.{Path, Paths}
+import java.nio.file.{Files, Path, Paths}
 import java.util.UUID
 
 import homework3.Processor
@@ -24,5 +24,15 @@ class FileOutput(targetDir: String)
     targetPath.resolve(fileName)
   }
 
-  def apply(url: String, response: HttpResponse): Future[SavedFiles] = ???
+  private def responseToString(response: HttpResponse) = {
+    response.headers.map(h => h._1 + ":" + h._2).reduceLeft(_ + "\n" + _) + "\n" + response.body
+  }
+
+  def apply(url: String, response: HttpResponse): Future[SavedFiles] = Future {
+    if (response.isSuccess) {
+      SavedFiles(Map(url -> Files.write(generatePathFor(url), responseToString(response).getBytes)))
+    } else {
+      SavedFiles(Map.empty)
+    }
+  }
 }
