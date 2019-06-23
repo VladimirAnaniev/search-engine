@@ -1,6 +1,6 @@
 package homework3.math
 
-import homework3.processors.WordCount
+import homework3.processors.{FileOutput, SavedFiles, WordCount}
 
 trait Monoid[M] {
   def op(a: M, b: M): M
@@ -84,5 +84,11 @@ object Monoid {
     def op(a: WordCount, b: WordCount): WordCount = WordCount(a.wordToCount |+| b.wordToCount)
 
     def identity: WordCount = WordCount(Map.empty)
+  }
+
+  implicit def fileOutputMonoid = new Monoid[SavedFiles] {
+    def op(a: SavedFiles, b: SavedFiles) = SavedFiles(a.urlToPath ++ b.urlToPath)
+
+    def identity: SavedFiles = SavedFiles(Map.empty)
   }
 }

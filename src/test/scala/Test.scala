@@ -1,13 +1,15 @@
 package homework3
 
+import java.util.concurrent.Executors
+
 import homework3.html.HtmlUtils
 import homework3.http.HttpUtils
 import homework3.math.Monoid.ops._
 import homework3.math.Monoid._
-import homework3.processors.{WordCount, WordCounter}
+import homework3.processors.{FileOutput, WordCount, WordCounter}
 import org.scalatest.{FlatSpec, Matchers}
 
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -41,7 +43,7 @@ class Test extends FlatSpec with Matchers {
       WordCount(Map("a" -> 2, "b" -> 3, "c" -> 4))
   }
 
-  "processors should work correctly and crawl" should "go to only one link when depth is 0" in {
+  "WordCounter should work correctly and crawl" should "go to only one link when depth is 0" in {
     getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/", SpideyConfig(0, sameDomainOnly = false))(WordCounter)).wordToCount shouldBe
       Map("text" -> 1, "response" -> 1, "1" -> 1)
   }
@@ -69,6 +71,14 @@ class Test extends FlatSpec with Matchers {
   it should "go to 4 links when depth is a big number and same domain is true" in {
     getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/", SpideyConfig(1000, sameDomainOnly = true))(WordCounter)).wordToCount shouldBe
       Map("text" -> 1, "response" -> 1, "1" -> 1, "service1" -> 1, "service2" -> 1, "service3" -> 1)
+  }
+
+  "SavedFiles" should "work correctly" in {
+    val ex = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(5))
+
+    getFutureResultBlocking(
+      testSpidey.crawl("https://www.test1.com/", SpideyConfig(0, sameDomainOnly = false))
+      (new FileOutput("/home/stiliyan/test-fileoutput/")(ex)))
   }
 }
 

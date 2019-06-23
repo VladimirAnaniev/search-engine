@@ -25,7 +25,7 @@ class FileOutput(targetDir: String)
   }
 
   private def responseToString(response: HttpResponse) = {
-    response.headers.map(h => h._1 + ":" + h._2).reduceLeft(_ + "\n" + _) + "\n" + response.body
+    response.headers.map(h => h._1 + ":" + h._2).reduceLeft(_ + "\n" + _) + "\n\n" + response.body
   }
 
   def apply(url: String, response: HttpResponse): Future[SavedFiles] = Future {
