@@ -1,19 +1,18 @@
 package homework3
 
 import java.io.File
-import java.nio.file.Files
 import java.util.concurrent.Executors
 
 import homework3.html.HtmlUtils
 import homework3.http.HttpUtils
-import homework3.math.Monoid.ops._
 import homework3.math.Monoid._
+import homework3.math.Monoid.ops._
 import homework3.processors.{BrokenLinkDetector, FileOutput, WordCount, WordCounter}
 import org.scalatest.{FlatSpec, Matchers}
 
-import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.io.Source
 
 class Test extends FlatSpec with Matchers {
