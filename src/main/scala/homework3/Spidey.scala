@@ -23,45 +23,44 @@ class Spidey(httpClient: HttpClient)(implicit ex: ExecutionContext) {
       throw new IllegalArgumentException("maxDepth cannot be less than zero!")
     }
 
-    import homework3.math.Monoid.ops._
-
     @tailrec
     def crawlRecHelper(visited: HashSet[String], toVisit: List[String], curResult: O, curDepth: Int): O = {
-      if (toVisit.isEmpty) {
-        curResult
+      import homework3.math.Monoid.ops._
+
+      val urlToResponseMap: mutable.Map[String, HttpResponse] = mutable.Map.empty
+
+      def processUrl(url: String): Future[O] = (httpClient.get(url) andThen {
+        case Success(response) => urlToResponseMap += url -> response
+      }).flatMap(response => processor(url, response))
+
+      val result = toVisit
+        .map(processUrl)
+        .map(Await.result(_, Duration.Inf))
+        .foldLeft(Monoid[O].identity)(_ |+| _)
+
+      if (curDepth > 0) {
+        def shouldBeVisited(link: String) = if (config.sameDomainOnly) {
+          !visited(link) && HttpUtils.sameDomain(url, link)
+        } else {
+          !visited(link)
+        }
+
+        val newToVisit = urlToResponseMap.flatMap { case (url, response) =>
+          if (response.isHTMLResource) {
+            HtmlUtils.linksOf(response.body, url).distinct.filter(shouldBeVisited)
+          } else {
+            List.empty
+          }
+        }.toList
+
+        crawlRecHelper(
+          visited ++ toVisit,
+          newToVisit,
+          result |+| curResult,
+          curDepth - 1)
       }
       else {
-        val urlToResponseMap: mutable.Map[String, HttpResponse] = mutable.Map.empty
-
-        val result = toVisit.map(url =>
-          (httpClient.get(url) andThen {
-            case Success(response) => urlToResponseMap += url -> response
-          }).flatMap(response => processor(url, response)))
-          .map(Await.result(_, Duration.Inf))
-          .foldLeft(Monoid[O].identity)(_ |+| _)
-
-        if (curDepth > 0) {
-          crawlRecHelper(
-            visited ++ toVisit,
-            urlToResponseMap.toList.flatMap(keyValuePair => {
-              if (keyValuePair._2.isHTMLResource) {
-                HtmlUtils.linksOf(keyValuePair._2.body, keyValuePair._1).distinct.filter(link => {
-                  if (config.sameDomainOnly) {
-                    !visited(link) && HttpUtils.sameDomain(url, link)
-                  } else {
-                    !visited(link)
-                  }
-                })
-              } else {
-                List.empty
-              }
-            }),
-            result |+| curResult,
-            curDepth - 1)
-        }
-        else {
-          result |+| curResult
-        }
+        result |+| curResult
       }
     }
 
