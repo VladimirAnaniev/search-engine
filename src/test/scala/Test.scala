@@ -87,15 +87,20 @@ class Test extends FlatSpec with Matchers {
       testSpidey.crawl("https://www.test1.com/", SpideyConfig(1000))
       (new FileOutput(tempDirName)(ex)))
 
+    dir.listFiles.length shouldBe 4
+
     savedFiles.urlToPath.size shouldBe 4
     savedFiles.urlToPath.keySet.forall(url => url.startsWith("https://www.test1.com/")) shouldBe true
 
-    def fileWithContentExists(files: Array[File], content: String) = files.exists(file => {
+    def getFileContent(file: File) = {
       val src = Source.fromFile(file.getAbsolutePath)
       val fileContent = src.getLines.mkString("\n")
       src.close
-      fileContent == content
-    })
+      fileContent
+    }
+
+    def fileWithContentExists(files: Array[File], content: String) =
+      files.exists(getFileContent(_) == content)
 
     val contentsThatShouldBeInFiles =
       List(MockHttpClient.test1Response,
@@ -103,7 +108,8 @@ class Test extends FlatSpec with Matchers {
         MockHttpClient.test1ResponseService2,
         MockHttpClient.test1ResponseService3).map(FileOutput.responseToString)
 
-    contentsThatShouldBeInFiles.foreach(fileWithContentExists(dir.listFiles, _) shouldBe true)
+
+    contentsThatShouldBeInFiles.forall(fileWithContentExists(dir.listFiles, _)) shouldBe true
 
     fileWithContentExists(dir.listFiles, "ASDSA1232134DASD") shouldBe false
 
