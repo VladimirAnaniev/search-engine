@@ -2,9 +2,7 @@ package homework3
 
 import java.util.concurrent.ForkJoinPool
 
-import homework3.html.HtmlUtils
 import homework3.http.AsyncHttpClient
-import homework3.processors.WordCount
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext}

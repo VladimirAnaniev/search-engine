@@ -45,32 +45,32 @@ class Test extends FlatSpec with Matchers {
       WordCount(Map("a" -> 2, "b" -> 3, "c" -> 4))
   }
 
-  "WordCounter should work correctly and crawl" should "go to only one link when depth is 0" in {
+  "WordCounter should work correctly and crawl" should "return proper responses when depth is 0" in {
     getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/", SpideyConfig(0, sameDomainOnly = false))(WordCounter)).wordToCount shouldBe
       Map("text" -> 1, "response" -> 1, "1" -> 1)
   }
 
-  it should "go to three links when depth is 1" in {
+  it should "return proper responses when depth is 1" in {
     getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/", SpideyConfig(1, sameDomainOnly = false))(WordCounter)).wordToCount shouldBe
       Map("text" -> 2, "response" -> 2, "1" -> 1, "2" -> 1, "service1" -> 1)
   }
 
-  it should "go to five links when depth is 2" in {
+  it should "return proper responses when depth is 2" in {
     getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/", SpideyConfig(2, sameDomainOnly = false))(WordCounter)).wordToCount shouldBe
       Map("text" -> 3, "response" -> 3, "1" -> 1, "2" -> 1, "3" -> 1, "service1" -> 1, "service2" -> 1)
   }
 
-  it should "go to six links when depth is 3" in {
+  it should "return proper responses when depth is 3" in {
     getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/", SpideyConfig(3, sameDomainOnly = false))(WordCounter)).wordToCount shouldBe
       Map("text" -> 3, "response" -> 3, "1" -> 1, "2" -> 1, "3" -> 1, "service1" -> 1, "service2" -> 1, "service3" -> 1)
   }
 
-  it should "go to six links when depth is a big number" in {
+  it should "return proper responses depth is a big number" in {
     getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/", SpideyConfig(1000, sameDomainOnly = false))(WordCounter)).wordToCount shouldBe
       Map("text" -> 3, "response" -> 3, "1" -> 1, "2" -> 1, "3" -> 1, "service1" -> 1, "service2" -> 1, "service3" -> 1)
   }
 
-  it should "go to 4 links when depth is a big number and same domain is true" in {
+  it should "return proper responses when depth is a big number and same domain is true" in {
     getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/", SpideyConfig(1000))(WordCounter)).wordToCount shouldBe
       Map("text" -> 1, "response" -> 1, "1" -> 1, "service1" -> 1, "service2" -> 1, "service3" -> 1)
   }
