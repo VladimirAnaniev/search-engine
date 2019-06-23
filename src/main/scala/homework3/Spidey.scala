@@ -27,7 +27,6 @@ class Spidey(httpClient: HttpClient)(implicit ex: ExecutionContext) {
 
     @tailrec
     def crawlRecHelper(visited: HashSet[String], toVisit: List[String], curResult: O, curDepth: Int): O = {
-
       if (toVisit.isEmpty) {
         curResult
       }
@@ -36,8 +35,8 @@ class Spidey(httpClient: HttpClient)(implicit ex: ExecutionContext) {
 
         val result = toVisit.map(url =>
           (httpClient.get(url) andThen {
-            case Success(httpResponse) => urlToResponseMap += url -> httpResponse
-          }).flatMap(processor(url, _)))
+            case Success(response) => urlToResponseMap += url -> response
+          }).flatMap(response => processor(url, response)))
           .map(Await.result(_, Duration.Inf))
           .foldLeft(Monoid[O].identity)(_ |+| _)
 

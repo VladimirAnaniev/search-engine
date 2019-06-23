@@ -1,6 +1,6 @@
 package homework3.math
 
-import homework3.processors.{FileOutput, SavedFiles, WordCount}
+import homework3.processors.{SavedFiles, WordCount}
 
 trait Monoid[M] {
   def op(a: M, b: M): M
@@ -90,5 +90,11 @@ object Monoid {
     def op(a: SavedFiles, b: SavedFiles) = SavedFiles(a.urlToPath ++ b.urlToPath)
 
     def identity: SavedFiles = SavedFiles(Map.empty)
+  }
+
+  implicit def setOfStringsMonoid = new Monoid[Set[String]] {
+    def op(a: Set[String], b: Set[String]): Set[String] = a ++ b
+
+    def identity: Set[String] = Set.empty
   }
 }

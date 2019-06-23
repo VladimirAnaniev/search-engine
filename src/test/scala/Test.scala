@@ -8,7 +8,7 @@ import homework3.html.HtmlUtils
 import homework3.http.HttpUtils
 import homework3.math.Monoid.ops._
 import homework3.math.Monoid._
-import homework3.processors.{FileOutput, WordCount, WordCounter}
+import homework3.processors.{BrokenLinkDetector, FileOutput, WordCount, WordCounter}
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -115,6 +115,24 @@ class Test extends FlatSpec with Matchers {
 
     dir.listFiles.foreach(_.delete)
     dir.delete
+  }
+
+  "BrokenLinkDetector" should "detect 0 urls with response code 404" in {
+    getFutureResultBlocking(testSpidey
+      .crawl("https://www.test1.com/", SpideyConfig(2, sameDomainOnly = false))
+      (BrokenLinkDetector)).isEmpty shouldBe true
+  }
+
+  it should "detect 1 url with response code 404" in {
+    getFutureResultBlocking(testSpidey
+      .crawl("https://www.test1.com/", SpideyConfig(100))
+      (BrokenLinkDetector)) shouldBe Set("https://www.test1.com/service4/")
+  }
+
+  it should "detect 2 urls with response code 404" in {
+    getFutureResultBlocking(testSpidey
+      .crawl("https://www.test1.com/", SpideyConfig(100, sameDomainOnly = false))
+      (BrokenLinkDetector)) shouldBe Set("https://www.test4.com/", "https://www.test1.com/service4/")
   }
 }
 
