@@ -21,12 +21,12 @@ class MockHttpResponseFactory {
 
 class MockHttpClient extends HttpClient {
   def get(url: String): Future[HttpResponse] = url match {
-    case "https://www.test1.com/" => MockHttpClient.test1Response
-    case "https://www.test1.com/service1/" => MockHttpClient.test1ResponseService1
-    case "https://www.test1.com/service2/" => MockHttpClient.test1ResponseService2
-    case "https://www.test1.com/service3/" => MockHttpClient.test1ResponseService3
-    case "https://www.test2.com/" => MockHttpClient.test2Response
-    case "https://www.test3.com/" => MockHttpClient.test3Response
+    case "https://www.test1.com/" => Promise[HttpResponse].complete(Try(MockHttpClient.test1Response)).future
+    case "https://www.test1.com/service1/" => Promise[HttpResponse].complete(Try(MockHttpClient.test1ResponseService1)).future
+    case "https://www.test1.com/service2/" => Promise[HttpResponse].complete(Try(MockHttpClient.test1ResponseService2)).future
+    case "https://www.test1.com/service3/" => Promise[HttpResponse].complete(Try(MockHttpClient.test1ResponseService3)).future
+    case "https://www.test2.com/" => Promise[HttpResponse].complete(Try(MockHttpClient.test2Response)).future
+    case "https://www.test3.com/" => Promise[HttpResponse].complete(Try(MockHttpClient.test3Response)).future
     case wrongURL => throw new IllegalArgumentException("Wrong testing url - " + wrongURL)
   }
 }
@@ -40,30 +40,24 @@ object MockHttpClient {
 
   val emptyResponse = mockHttpResponseFactory.createEmptyResponse
 
-  def test1Response = Promise[HttpResponse].complete(Try(
-    mockHttpResponseFactory.createResponse(
+  def test1Response = mockHttpResponseFactory.createResponse(
       s""""<a href="https://www.test2.com/">$textResponse1</a>
-         |<a href="https://www.test1.com/service1/"></a>"""".stripMargin))).future
+         |<a href="https://www.test1.com/service1/"></a>"""".stripMargin)
 
-  def test1ResponseService1 = Promise[HttpResponse].complete(Try(
-    MockHttpClient.mockHttpResponseFactory
-      .createResponse(s""""<a href="https://www.test1.com/service2/">service1</a>"""))).future
+  def test1ResponseService1 = MockHttpClient.mockHttpResponseFactory
+      .createResponse(s""""<a href="https://www.test1.com/service2/">service1</a>""")
 
-  def test1ResponseService2 = Promise[HttpResponse].complete(Try(
-    MockHttpClient.mockHttpResponseFactory
-      .createResponse(s""""<a href="https://www.test1.com/service3/">service2</a>"""))).future
+  def test1ResponseService2 = MockHttpClient.mockHttpResponseFactory
+      .createResponse(s""""<a href="https://www.test1.com/service3/">service2</a>""")
 
-  def test1ResponseService3 = Promise[HttpResponse].complete(Try(
-    MockHttpClient.mockHttpResponseFactory
-      .createResponse("service3"))).future
+  def test1ResponseService3 = MockHttpClient.mockHttpResponseFactory
+      .createResponse("service3")
 
-  def test2Response = Promise[HttpResponse].complete(Try(
-    mockHttpResponseFactory.createResponse(
-      s""""<a href="https://www.test3.com/">$textResponse2</a>"""))).future
+  def test2Response = mockHttpResponseFactory.createResponse(
+      s""""<a href="https://www.test3.com/">$textResponse2</a>""")
 
-  def test3Response = Promise[HttpResponse].complete(Try(
-    mockHttpResponseFactory.createResponse(
-      s""""<a href="https://www.test1.com/">$textResponse3</a>"""))).future
+  def test3Response = mockHttpResponseFactory.createResponse(
+      s""""<a href="https://www.test1.com/">$textResponse3</a>""")
 }
 
 

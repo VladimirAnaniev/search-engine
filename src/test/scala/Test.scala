@@ -1,5 +1,7 @@
 package homework3
 
+import java.io.File
+import java.nio.file.Files
 import java.util.concurrent.Executors
 
 import homework3.html.HtmlUtils
@@ -12,6 +14,7 @@ import org.scalatest.{FlatSpec, Matchers}
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.io.Source
 
 class Test extends FlatSpec with Matchers {
 
@@ -69,16 +72,43 @@ class Test extends FlatSpec with Matchers {
   }
 
   it should "go to 4 links when depth is a big number and same domain is true" in {
-    getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/", SpideyConfig(1000, sameDomainOnly = true))(WordCounter)).wordToCount shouldBe
+    getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/", SpideyConfig(1000))(WordCounter)).wordToCount shouldBe
       Map("text" -> 1, "response" -> 1, "1" -> 1, "service1" -> 1, "service2" -> 1, "service3" -> 1)
   }
 
   "SavedFiles" should "work correctly" in {
     val ex = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(5))
 
-    getFutureResultBlocking(
-      testSpidey.crawl("https://www.test1.com/", SpideyConfig(0, sameDomainOnly = false))
-      (new FileOutput("/home/stiliyan/test-fileoutput/")(ex)))
+    val tempDirName = "test-fileoutput-temporary-dir"
+    val dir = new File(tempDirName)
+    dir.mkdir
+
+    val savedFiles = getFutureResultBlocking(
+      testSpidey.crawl("https://www.test1.com/", SpideyConfig(1000))
+      (new FileOutput(tempDirName)(ex)))
+
+    savedFiles.urlToPath.size shouldBe 4
+    savedFiles.urlToPath.keySet.forall(url => url.startsWith("https://www.test1.com/")) shouldBe true
+
+    def fileWithContentExists(files: Array[File], content: String) = files.exists(file => {
+      val src = Source.fromFile(file.getAbsolutePath)
+      val fileContent = src.getLines.mkString("\n")
+      src.close
+      fileContent == content
+    })
+
+    val contentsThatShouldBeInFiles =
+      List(MockHttpClient.test1Response,
+        MockHttpClient.test1ResponseService1,
+        MockHttpClient.test1ResponseService2,
+        MockHttpClient.test1ResponseService3).map(FileOutput.responseToString)
+
+    contentsThatShouldBeInFiles.foreach(fileWithContentExists(dir.listFiles, _) shouldBe true)
+
+    fileWithContentExists(dir.listFiles, "ASDSA1232134DASD") shouldBe false
+
+    dir.listFiles.foreach(_.delete)
+    dir.delete
   }
 }
 
