@@ -76,7 +76,7 @@ class Test extends FlatSpec with Matchers {
       Map("text" -> 1, "response" -> 1, "1" -> 1, "service1" -> 1, "service2" -> 1, "service3" -> 1)
   }
 
-  "SavedFiles" should "work correctly" in {
+  "SavedFiles" should "generate files with proper http responses" in {
     val ex = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(5))
 
     val tempDirName = "test-fileoutput-temporary-dir"
@@ -99,19 +99,15 @@ class Test extends FlatSpec with Matchers {
       fileContent
     }
 
-    def fileWithContentExists(files: Array[File], content: String) =
-      files.exists(getFileContent(_) == content)
-
     val contentsThatShouldBeInFiles =
       List(MockHttpClient.test1Response,
         MockHttpClient.test1ResponseService1,
         MockHttpClient.test1ResponseService2,
         MockHttpClient.test1ResponseService3).map(FileOutput.responseToString)
 
-
-    contentsThatShouldBeInFiles.forall(fileWithContentExists(dir.listFiles, _)) shouldBe true
-
-    fileWithContentExists(dir.listFiles, "ASDSA1232134DASD") shouldBe false
+    contentsThatShouldBeInFiles.forall {
+      content => dir.listFiles.exists(getFileContent(_) == content)
+    } shouldBe true
 
     dir.listFiles.foreach(_.delete)
     dir.delete
