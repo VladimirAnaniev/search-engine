@@ -9,7 +9,7 @@ import scala.collection.immutable.HashSet
 import scala.collection.mutable
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.util.Success
+import scala.util.{Failure, Success}
 
 case class SpideyConfig(maxDepth: Int,
                         sameDomainOnly: Boolean = true,
@@ -33,9 +33,15 @@ class Spidey(httpClient: HttpClient)(implicit ex: ExecutionContext) {
         case Success(response) => urlToResponseMap += url -> response
       }).flatMap(response => processor(url, response))
 
-      val result = toVisit
-        .map(processUrl)
-        .map(Await.result(_, Duration.Inf))
+      val processedUrls = toVisit.map(processUrl)
+
+      processedUrls.foreach(Await.ready(_, Duration.Inf))
+
+      val result = processedUrls
+        .map(_.value match {
+          case Some(Success(r)) => r
+          case Some(Failure(t)) => if (config.tolerateErrors) Monoid[O].identity else throw t
+        })
         .foldLeft(Monoid[O].identity)(_ |+| _)
 
       if (curDepth > 0) {
