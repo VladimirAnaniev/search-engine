@@ -1,9 +1,9 @@
 package homework3
 
 import homework3.http.{HttpClient, HttpResponse}
+import javax.management.InvalidApplicationException
 
-import scala.concurrent.{Future, Promise}
-import scala.util.Try
+import scala.concurrent.Future
 
 class MockHttpResponseFactory {
   def createHttpResponse(responseBody: String, statusCode: Int = 200) = new HttpResponse {
@@ -26,7 +26,7 @@ class MockHttpClient extends HttpClient {
     case "https://www.test1.com/service4/" => Future.successful(MockHttpClient.test1ResponseService4)
     case "https://www.test2.com/" => Future.successful(MockHttpClient.test2Response)
     case "https://www.test2.com/service1/" => Future.successful(MockHttpClient.test2ResponseService1)
-    case "https://www.test2.com/service2/" => Future.failed(new IllegalArgumentException("No such service!"))
+    case "https://www.test2.com/service2/" => Future.failed(new InvalidApplicationException("No such service!"))
     case "https://www.test3.com/" => Future.successful(MockHttpClient.test3Response)
     case "https://www.test4.com/" => Future.successful(MockHttpClient.test4Response)
     case wrongURL => Future.failed(new IllegalArgumentException("Wrong testing url - " + wrongURL))
@@ -60,12 +60,11 @@ object MockHttpClient {
   val test2Response =
     mockHttpResponseFactory.createHttpResponse(
       s""""<a href="https://www.test3.com/">$textResponse2</a>
-         |<a href="https://www.test2.com/service1/></a>
-       """.stripMargin)
+         |<a href="https://www.test2.com/service1/"></a>"""".stripMargin)
 
   val test2ResponseService1 =
     mockHttpResponseFactory.createHttpResponse(
-      s""""<a href="https://www.test2.com/service2"></a>""")
+      s""""<a href="https://www.test2.com/service2/"></a>""")
 
   val test3Response =
     mockHttpResponseFactory.createHttpResponse(
