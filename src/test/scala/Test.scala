@@ -14,6 +14,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.io.Source
+import scala.util.Failure
 
 class Test extends FlatSpec with Matchers {
 
@@ -46,36 +47,42 @@ class Test extends FlatSpec with Matchers {
   }
 
   "WordCounter should work correctly and crawl" should "return proper responses when depth is 0" in {
-    getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/", SpideyConfig(0, sameDomainOnly = false))(WordCounter)).wordToCount shouldBe
+    getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/",
+      SpideyConfig(0, sameDomainOnly = false))(WordCounter)).wordToCount shouldBe
       Map("text" -> 1, "response" -> 1, "1" -> 1)
   }
 
   it should "return proper responses when depth is 1" in {
-    getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/", SpideyConfig(1, sameDomainOnly = false))(WordCounter)).wordToCount shouldBe
+    getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/",
+      SpideyConfig(1, sameDomainOnly = false))(WordCounter)).wordToCount shouldBe
       Map("text" -> 2, "response" -> 2, "1" -> 1, "2" -> 1, "service1" -> 1)
   }
 
   it should "return proper responses when depth is 2" in {
-    getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/", SpideyConfig(2, sameDomainOnly = false))(WordCounter)).wordToCount shouldBe
+    getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/",
+      SpideyConfig(2, sameDomainOnly = false))(WordCounter)).wordToCount shouldBe
       Map("text" -> 3, "response" -> 3, "1" -> 1, "2" -> 1, "3" -> 1, "service1" -> 1, "service2" -> 1)
   }
 
   it should "return proper responses when depth is 3" in {
-    getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/", SpideyConfig(3, sameDomainOnly = false))(WordCounter)).wordToCount shouldBe
+    getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/",
+      SpideyConfig(3, sameDomainOnly = false))(WordCounter)).wordToCount shouldBe
       Map("text" -> 3, "response" -> 3, "1" -> 1, "2" -> 1, "3" -> 1, "service1" -> 1, "service2" -> 1, "service3" -> 1)
   }
 
   it should "return proper responses depth is a big number" in {
-    getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/", SpideyConfig(1000, sameDomainOnly = false))(WordCounter)).wordToCount shouldBe
+    getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/",
+      SpideyConfig(1000, sameDomainOnly = false))(WordCounter)).wordToCount shouldBe
       Map("text" -> 3, "response" -> 3, "1" -> 1, "2" -> 1, "3" -> 1, "service1" -> 1, "service2" -> 1, "service3" -> 1)
   }
 
   it should "return proper responses when depth is a big number and same domain is true" in {
-    getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/", SpideyConfig(1000))(WordCounter)).wordToCount shouldBe
+    getFutureResultBlocking(testSpidey.crawl("https://www.test1.com/",
+      SpideyConfig(1000))(WordCounter)).wordToCount shouldBe
       Map("text" -> 1, "response" -> 1, "1" -> 1, "service1" -> 1, "service2" -> 1, "service3" -> 1)
   }
 
-  "SavedFiles" should "generate files with proper http responses" in {
+  "FileOutput" should "generate files with proper http responses" in {
     val ex = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(5))
 
     val tempDirName = "test-fileoutput-temporary-dir"
@@ -83,8 +90,8 @@ class Test extends FlatSpec with Matchers {
     dir.mkdir
 
     val savedFiles = getFutureResultBlocking(
-      testSpidey.crawl("https://www.test1.com/", SpideyConfig(1000))
-      (new FileOutput(tempDirName)(ex)))
+      testSpidey.crawl("https://www.test1.com/",
+        SpideyConfig(1000))(new FileOutput(tempDirName)(ex)))
 
     dir.listFiles.length shouldBe 4
 
@@ -114,20 +121,37 @@ class Test extends FlatSpec with Matchers {
 
   "BrokenLinkDetector" should "detect 0 urls with response code 404" in {
     getFutureResultBlocking(testSpidey
-      .crawl("https://www.test1.com/", SpideyConfig(2, sameDomainOnly = false))
-      (BrokenLinkDetector)).isEmpty shouldBe true
+      .crawl("https://www.test1.com/",
+        SpideyConfig(2, sameDomainOnly = false))(BrokenLinkDetector)).isEmpty shouldBe true
   }
 
   it should "detect 1 url with response code 404" in {
     getFutureResultBlocking(testSpidey
-      .crawl("https://www.test1.com/", SpideyConfig(100))
-      (BrokenLinkDetector)) shouldBe Set("https://www.test1.com/service4/")
+      .crawl("https://www.test1.com/",
+        SpideyConfig(100))(BrokenLinkDetector)) shouldBe
+      Set("https://www.test1.com/service4/")
   }
 
   it should "detect 2 urls with response code 404" in {
     getFutureResultBlocking(testSpidey
-      .crawl("https://www.test1.com/", SpideyConfig(100, sameDomainOnly = false))
-      (BrokenLinkDetector)) shouldBe Set("https://www.test4.com/", "https://www.test1.com/service4/")
+      .crawl("https://www.test1.com/",
+        SpideyConfig(100, sameDomainOnly = false))(BrokenLinkDetector)) shouldBe
+      Set("https://www.test4.com/", "https://www.test1.com/service4/")
+  }
+
+  "When tolerate Errors is false, crawl" should "generate failed future with proper exception" in {
+    val f = testSpidey.crawl("https://www.INVALID.com/",
+      SpideyConfig(3, tolerateErrors = false))(WordCounter)
+
+    Await.ready(f, Duration.Inf)
+
+    /*
+    TODO: Use http://doc.scalatest.org/3.0.1-2.12/org/scalatest/concurrent/ScalaFutures.html
+    `assert(result.futureValue === 7)` за успех
+    `assert(result.failed.futureValue.isInstanceOf[ArithmeticException])` за failure
+    
+     */
+    // f.value.get shouldBe Failure(new IllegalArgumentException("Wrong testing url - https://www.INVALID.com/"))
   }
 }
 

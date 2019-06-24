@@ -34,7 +34,6 @@ class Spidey(httpClient: HttpClient)(implicit ex: ExecutionContext) {
       }).flatMap(response => processor(url, response))
 
       val processedUrls = toVisit.map(processUrl)
-
       processedUrls.foreach(Await.ready(_, Duration.Inf))
 
       val result = processedUrls

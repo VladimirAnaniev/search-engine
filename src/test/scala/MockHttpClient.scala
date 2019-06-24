@@ -19,15 +19,17 @@ class MockHttpResponseFactory {
 
 class MockHttpClient extends HttpClient {
   def get(url: String): Future[HttpResponse] = url match {
-    case "https://www.test1.com/" => Promise[HttpResponse].complete(Try(MockHttpClient.test1Response)).future
-    case "https://www.test1.com/service1/" => Promise[HttpResponse].complete(Try(MockHttpClient.test1ResponseService1)).future
-    case "https://www.test1.com/service2/" => Promise[HttpResponse].complete(Try(MockHttpClient.test1ResponseService2)).future
-    case "https://www.test1.com/service3/" => Promise[HttpResponse].complete(Try(MockHttpClient.test1ResponseService3)).future
-    case "https://www.test1.com/service4/" => Promise[HttpResponse].complete(Try(MockHttpClient.test1ResponseService4)).future
-    case "https://www.test2.com/" => Promise[HttpResponse].complete(Try(MockHttpClient.test2Response)).future
-    case "https://www.test3.com/" => Promise[HttpResponse].complete(Try(MockHttpClient.test3Response)).future
-    case "https://www.test4.com/" => Promise[HttpResponse].complete(Try(MockHttpClient.test4Response)).future
-    case wrongURL => throw new IllegalArgumentException("Wrong testing url - " + wrongURL)
+    case "https://www.test1.com/" => Future.successful(MockHttpClient.test1Response)
+    case "https://www.test1.com/service1/" => Future.successful(MockHttpClient.test1ResponseService1)
+    case "https://www.test1.com/service2/" => Future.successful(MockHttpClient.test1ResponseService2)
+    case "https://www.test1.com/service3/" => Future.successful(MockHttpClient.test1ResponseService3)
+    case "https://www.test1.com/service4/" => Future.successful(MockHttpClient.test1ResponseService4)
+    case "https://www.test2.com/" => Future.successful(MockHttpClient.test2Response)
+    case "https://www.test2.com/service1/" => Future.successful(MockHttpClient.test2ResponseService1)
+    case "https://www.test2.com/service2/" => Future.failed(new IllegalArgumentException("No such service!"))
+    case "https://www.test3.com/" => Future.successful(MockHttpClient.test3Response)
+    case "https://www.test4.com/" => Future.successful(MockHttpClient.test4Response)
+    case wrongURL => Future.failed(new IllegalArgumentException("Wrong testing url - " + wrongURL))
   }
 }
 
@@ -38,34 +40,40 @@ object MockHttpClient {
   val textResponse2 = "text response 2"
   val textResponse3 = "text response 3"
 
-  def test1Response =
+  val test1Response =
     mockHttpResponseFactory.createHttpResponse(
       s""""<a href="https://www.test2.com/">$textResponse1</a>
          |<a href="https://www.test1.com/service1/"></a>"""".stripMargin)
 
-  def test1ResponseService1 =
+  val test1ResponseService1 =
     mockHttpResponseFactory.createHttpResponse(s""""<a href="https://www.test1.com/service2/">service1</a>""")
 
-  def test1ResponseService2 =
+  val test1ResponseService2 =
     mockHttpResponseFactory.createHttpResponse(s""""<a href="https://www.test1.com/service3/">service2</a>""")
 
-  def test1ResponseService3 =
+  val test1ResponseService3 =
     mockHttpResponseFactory.createHttpResponse(s""""<a href="https://www.test1.com/service4/">service3</a>""")
 
-  def test1ResponseService4 =
+  val test1ResponseService4 =
     mockHttpResponseFactory.createHttpResponse("service4notfound", 404)
 
-  def test2Response =
+  val test2Response =
     mockHttpResponseFactory.createHttpResponse(
-      s""""<a href="https://www.test3.com/">$textResponse2</a>""")
+      s""""<a href="https://www.test3.com/">$textResponse2</a>
+         |<a href="https://www.test2.com/service1/></a>
+       """.stripMargin)
 
-  def test3Response =
+  val test2ResponseService1 =
+    mockHttpResponseFactory.createHttpResponse(
+      s""""<a href="https://www.test2.com/service2"></a>""")
+
+  val test3Response =
     mockHttpResponseFactory.createHttpResponse(
       s""""<a href="https://www.test1.com/">$textResponse3</a>
          |<a href="https://www.test4.com/"></a>
      """.stripMargin)
 
-  def test4Response =
+  val test4Response =
     mockHttpResponseFactory.createHttpResponse("test4notfound", 404)
 }
 
