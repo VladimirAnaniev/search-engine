@@ -19,9 +19,7 @@ case class SpideyConfig(maxDepth: Int,
 class Spidey(httpClient: HttpClient)(implicit ex: ExecutionContext) {
   def crawl[O: Monoid](url: String, config: SpideyConfig)
                       (processor: Processor[O]): Future[O] = Future {
-    if (config.maxDepth < 0) {
-      throw new IllegalArgumentException("maxDepth cannot be less than zero!")
-    }
+    validateConfig(config)
 
     @tailrec
     def crawlRecHelper(visited: HashSet[String], toVisit: List[String], curResult: O, curDepth: Int): O = {
@@ -29,7 +27,7 @@ class Spidey(httpClient: HttpClient)(implicit ex: ExecutionContext) {
 
       val urlToResponseMap: mutable.Map[String, HttpResponse] = mutable.Map.empty
 
-      def processUrl(url: String): Future[O] = httpClient.get(url)
+      def processUrl(url: String): Future[O] = doGetRequest(url, config.retriesOnError)
         .andThen {
           case Success(response) => urlToResponseMap += url -> response
         }
@@ -70,5 +68,21 @@ class Spidey(httpClient: HttpClient)(implicit ex: ExecutionContext) {
     }
 
     crawlRecHelper(HashSet.empty, List(url), Monoid[O].identity, config.maxDepth)
+  }
+
+  def doGetRequest(url: String, retriesOnError: Int = 0): Future[HttpResponse] = {
+    if (retriesOnError == 0) {
+      httpClient.get(url)
+    } else {
+      httpClient.get(url).recoverWith[HttpResponse] { case _ => doGetRequest(url, retriesOnError - 1) }
+    }
+  }
+
+  def validateConfig(config: SpideyConfig): Unit = {
+    if (config.maxDepth < 0) {
+      throw new IllegalArgumentException("maxDepth cannot be less than zero!")
+    } else if (config.retriesOnError < 0) {
+      throw new IllegalArgumentException("retriesOnError cannot be less than zero!")
+    }
   }
 }
