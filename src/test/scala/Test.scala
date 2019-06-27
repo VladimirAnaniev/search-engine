@@ -157,6 +157,36 @@ class Test extends FlatSpec with Matchers with ScalaFutures {
 
     assert(future.failed.futureValue.isInstanceOf[InvalidApplicationException])
   }
+
+  // tests for retriesOnError should be done with different http clients,
+  // because of the mutable variable 'attemptForRetriesOnError' in mockHttpClient
+  "retriesOnError" should "generate failed response when set to 0" in {
+    val spidey = new Spidey(new MockHttpClient)
+
+    val future1 = spidey.crawl("https://www.testRetriesOnError.com/",
+      SpideyConfig(40, retriesOnError = 0, tolerateErrors = false))(WordCounter)
+
+    assert(future1.failed.futureValue.isInstanceOf[InvalidApplicationException])
+  }
+
+  it should "generate failed response when set to 1" in {
+    val spidey = new Spidey(new MockHttpClient)
+
+    val future = spidey.crawl("https://www.testRetriesOnError.com/",
+      SpideyConfig(40, retriesOnError = 1, tolerateErrors = false))(WordCounter)
+
+    assert(future.failed.futureValue.isInstanceOf[InvalidApplicationException])
+  }
+
+  it should "generate successful response when set to 2" in {
+    val spidey = new Spidey(new MockHttpClient)
+
+    val future = spidey.crawl("https://www.testRetriesOnError.com/",
+      SpideyConfig(40, retriesOnError = 3, tolerateErrors = false))(WordCounter)
+
+    future.futureValue.wordToCount shouldBe
+      Map("text" -> 1, "response" -> 1, "1" -> 1)
+  }
 }
 
 object Test extends App {

@@ -18,6 +18,9 @@ class MockHttpResponseFactory {
 }
 
 class MockHttpClient extends HttpClient {
+
+  var attemptForRetriesOnError = 0
+
   def get(url: String): Future[HttpResponse] = url match {
     case "https://www.test1.com/" => Future.successful(MockHttpClient.test1Response)
     case "https://www.test1.com/service1/" => Future.successful(MockHttpClient.test1ResponseService1)
@@ -29,6 +32,14 @@ class MockHttpClient extends HttpClient {
     case "https://www.test2.com/service2/" => Future.failed(new InvalidApplicationException("No such service!"))
     case "https://www.test3.com/" => Future.successful(MockHttpClient.test3Response)
     case "https://www.test4.com/" => Future.successful(MockHttpClient.test4Response)
+    case "https://www.testRetriesOnError.com/" => {
+      attemptForRetriesOnError += 1
+      if (attemptForRetriesOnError % 3 == 0) {
+        Future.successful(MockHttpClient.test1Response)
+      } else {
+        Future.failed(new InvalidApplicationException("Service not available yet. Try again."))
+      }
+    }
     case wrongURL => Future.failed(new IllegalArgumentException("Wrong testing url - " + wrongURL))
   }
 }
