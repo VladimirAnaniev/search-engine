@@ -1,13 +1,13 @@
-package homework3
+package searchengine
 
 import java.io.File
 import java.util.concurrent.Executors
 
-import homework3.html.HtmlUtils
-import homework3.http.HttpUtils
-import homework3.math.Monoid._
-import homework3.math.Monoid.ops._
-import homework3.processors.{BrokenLinkDetector, FileOutput, WordCount, WordCounter}
+import searchengine.html.HtmlUtils
+import searchengine.http.HttpUtils
+import searchengine.math.Monoid._
+import searchengine.math.Monoid.ops._
+import searchengine.processors.{BrokenLinkDetector, FileOutput, WordCount, WordCounter}
 import javax.management.InvalidApplicationException
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FlatSpec, Matchers}
@@ -194,7 +194,7 @@ object Test extends App {
 
   val mockHttpClient = new MockHttpClient
 
-  import homework3.processors.WordCount
+  import searchengine.processors.WordCount
 
   val httpResponse = getFutureResultBlocking(mockHttpClient.get("https://www.test1.com/"))
 

@@ -1,4 +1,4 @@
-package homework3.html
+package searchengine.html
 
 import org.jsoup.Jsoup
 import org.jsoup.select.Elements

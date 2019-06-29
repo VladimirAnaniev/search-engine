@@ -1,8 +1,8 @@
-package homework3.processors
+package searchengine.processors
 
-import homework3.Processor
-import homework3.html.HtmlUtils
-import homework3.http.HttpResponse
+import searchengine.Processor
+import searchengine.html.HtmlUtils
+import searchengine.http.HttpResponse
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
