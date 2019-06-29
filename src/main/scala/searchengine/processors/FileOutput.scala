@@ -1,11 +1,11 @@
-package homework3.processors
+package searchengine.processors
 
 import java.net.URI
 import java.nio.file.{Files, Path, Paths}
 import java.util.UUID
 
-import homework3.Processor
-import homework3.http.HttpResponse
+import searchengine.Processor
+import searchengine.http.HttpResponse
 
 import scala.concurrent.{ExecutionContext, Future}
 

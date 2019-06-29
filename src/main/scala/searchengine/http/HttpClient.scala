@@ -1,4 +1,4 @@
-package homework3.http
+package searchengine.http
 
 import scala.concurrent.Future
 
