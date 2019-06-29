@@ -17,7 +17,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.io.Source
 
-class Test extends FlatSpec with Matchers with ScalaFutures {
+class CrawlerTest extends FlatSpec with Matchers with ScalaFutures {
   val mockHttpClient = new MockHttpClient
   val testSpidey = new Spidey(mockHttpClient)
 

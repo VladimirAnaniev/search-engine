@@ -12,7 +12,10 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.0.5" % "test",
 
   "ch.qos.logback" % "logback-classic" % "1.2.3",
-  "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
+
+  "com.typesafe.slick" %% "slick" % "3.3.0",
+  "com.h2database" % "h2" % "1.4.185"
 )
 
 assemblyMergeStrategy in assembly := {
