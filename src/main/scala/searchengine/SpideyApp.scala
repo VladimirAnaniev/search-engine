@@ -1,8 +1,8 @@
-package homework3
+package searchengine
 
 import java.util.concurrent.ForkJoinPool
 
-import homework3.http.AsyncHttpClient
+import searchengine.http.AsyncHttpClient
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext}

@@ -1,6 +1,6 @@
-package homework3
+package searchengine
 
-import homework3.http.HttpResponse
+import searchengine.http.HttpResponse
 
 import scala.concurrent.Future
 

@@ -1,6 +1,6 @@
-package homework3
+package searchengine
 
-import homework3.http.{HttpClient, HttpResponse}
+import searchengine.http.{HttpClient, HttpResponse}
 import javax.management.InvalidApplicationException
 
 import scala.concurrent.Future

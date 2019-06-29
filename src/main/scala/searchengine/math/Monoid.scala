@@ -1,6 +1,6 @@
-package homework3.math
+package searchengine.math
 
-import homework3.processors.{SavedFiles, WordCount}
+import searchengine.processors.{SavedFiles, WordCount}
 
 trait Monoid[M] {
   def op(a: M, b: M): M

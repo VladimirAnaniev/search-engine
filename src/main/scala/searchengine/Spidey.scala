@@ -1,8 +1,8 @@
-package homework3
+package searchengine
 
-import homework3.html.HtmlUtils
-import homework3.http._
-import homework3.math.Monoid
+import searchengine.html.HtmlUtils
+import searchengine.http._
+import searchengine.math.Monoid
 
 import scala.annotation.tailrec
 import scala.collection.immutable.HashSet
@@ -23,7 +23,7 @@ class Spidey(httpClient: HttpClient)(implicit ex: ExecutionContext) {
 
     @tailrec
     def crawlRecHelper(visited: HashSet[String], toVisit: List[String], curResult: O, curDepth: Int): O = {
-      import homework3.math.Monoid.ops._
+      import searchengine.math.Monoid.ops._
 
       val urlToResponseMap: mutable.Map[String, HttpResponse] = mutable.Map.empty
 
