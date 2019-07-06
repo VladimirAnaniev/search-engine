@@ -25,16 +25,14 @@ class FileOutput(targetDir: String)
   }
 
   def apply(url: String, response: HttpResponse): Future[SavedFiles] = Future {
-    if (response.isSuccess) {
+    if (response.isSuccess)
       SavedFiles(Map(url -> Files.write(generatePathFor(url), FileOutput.responseToString(response).getBytes)))
-    } else {
+    else
       SavedFiles(Map.empty)
-    }
   }
 }
 
 object FileOutput {
-  def responseToString(response: HttpResponse) = {
+  def responseToString(response: HttpResponse) =
     response.headers.map(h => h._1 + ":" + h._2).reduceLeft(_ + "\n" + _) + "\n\n" + response.body
-  }
 }

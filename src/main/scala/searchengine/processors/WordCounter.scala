@@ -21,8 +21,6 @@ object WordCounter extends Processor[WordCount] {
           (count, word) => count + (word -> (count.getOrElse(word, 0) + 1))
         })
     }
-    else {
-      WordCount(Map.empty)
-    }
+    else WordCount(Map.empty)
   }
 }
