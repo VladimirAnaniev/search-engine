@@ -7,14 +7,13 @@ import javax.management.InvalidApplicationException
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FlatSpec, Matchers}
 import searchengine.html.HtmlUtils
-import searchengine.http.{AsyncHttpClient, HttpUtils}
+import searchengine.http.HttpUtils
 import searchengine.math.Monoid._
 import searchengine.math.Monoid.ops._
 import searchengine.processors._
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.io.Source
 
 class CrawlerTest extends FlatSpec with Matchers with ScalaFutures {
@@ -78,63 +77,6 @@ class CrawlerTest extends FlatSpec with Matchers with ScalaFutures {
     testSpidey.crawl("https://www.test1.com/",
       SpideyConfig(1000))(WordCounter).futureValue.wordToCount shouldBe
       Map("text" -> 1, "response" -> 1, "1" -> 1, "service1" -> 1, "service2" -> 1, "service3" -> 1)
-  }
-
-  "FileOutput" should "generate files with proper http responses" in {
-    val ex = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(5))
-
-    val tempDirName = "test-fileoutput-temporary-dir"
-    val dir = new File(tempDirName)
-    dir.mkdir
-
-    val savedFiles =
-      testSpidey.crawl("https://www.test1.com/",
-        SpideyConfig(1000))(new FileOutput(tempDirName)(ex)).futureValue
-
-    dir.listFiles.length shouldBe 4
-
-    savedFiles.urlToPath.size shouldBe 4
-    savedFiles.urlToPath.keySet.forall(url => url.startsWith("https://www.test1.com/")) shouldBe true
-
-    def getFileContent(file: File) = {
-      val src = Source.fromFile(file.getAbsolutePath)
-      val fileContent = src.getLines.mkString("\n")
-      src.close
-      fileContent
-    }
-
-    val contentsThatShouldBeInFiles =
-      List(MockHttpClient.test1Response,
-        MockHttpClient.test1ResponseService1,
-        MockHttpClient.test1ResponseService2,
-        MockHttpClient.test1ResponseService3).map(FileOutput.responseToString)
-
-    contentsThatShouldBeInFiles.forall {
-      content => dir.listFiles.exists(getFileContent(_) == content)
-    } shouldBe true
-
-    dir.listFiles.foreach(_.delete)
-    dir.delete
-  }
-
-  "BrokenLinkDetector" should "detect 0 urls with response code 404" in {
-    testSpidey
-      .crawl("https://www.test1.com/",
-        SpideyConfig(2, sameDomainOnly = false))(BrokenLinkDetector).futureValue.isEmpty shouldBe true
-  }
-
-  it should "detect 1 url with response code 404" in {
-    testSpidey
-      .crawl("https://www.test1.com/",
-        SpideyConfig(100))(BrokenLinkDetector).futureValue shouldBe
-      Set("https://www.test1.com/service4/")
-  }
-
-  it should "detect 2 urls with response code 404" in {
-    testSpidey
-      .crawl("https://www.test1.com/",
-        SpideyConfig(100, sameDomainOnly = false))(BrokenLinkDetector).futureValue shouldBe
-      Set("https://www.test4.com/", "https://www.test1.com/service4/")
   }
 
   "When tolerateErrors is true, crawl" should "generate identity of the monoid" in {
@@ -220,13 +162,13 @@ class CrawlerTest extends FlatSpec with Matchers with ScalaFutures {
   }
 }
 
-object Test extends App {
-  val httpClient = new AsyncHttpClient
-  val spidey = new Spidey(httpClient)
-
-  def getFutureResultBlocking[R](f: Future[R]) = Await.result(f, Duration.Inf)
-
-  println(getFutureResultBlocking(spidey
-    .crawl("https://en.wikipedia.org/wiki/Adolf_Hitler",
-      SpideyConfig(0))(WordCounter)).wordToCount)
-}
+//object Test extends App {
+//  val httpClient = new AsyncHttpClient
+//  val spidey = new Spidey(httpClient)
+//
+//  def getFutureResultBlocking[R](f: Future[R]) = Await.result(f, Duration.Inf)
+//
+//  println(getFutureResultBlocking(spidey
+//    .crawl("https://en.wikipedia.org/wiki/Adolf_Hitler",
+//      SpideyConfig(0))(WordCounter)).wordToCount)
+//}

@@ -1,5 +1,6 @@
 import controllers.{ApplicationController, AssetsComponents}
 import play.api.ApplicationLoader.Context
+import play.api.db.slick.SlickComponents
 import play.api.libs.ws.ahc.AhcWSComponents
 import play.api.mvc.EssentialFilter
 import play.api.routing.Router
@@ -15,7 +16,8 @@ class WebApp(context: Context)
   extends BuiltInComponentsFromContext(context)
     with HttpFiltersComponents
     with AhcWSComponents
-    with AssetsComponents {
+    with AssetsComponents
+    with SlickComponents {
 
   override def httpFilters: Seq[EssentialFilter] = Seq.empty // disables filters from HttpFiltersComponents, like CSRF
 

@@ -86,12 +86,6 @@ object Monoid {
     def identity: WordCount = WordCount(Map.empty)
   }
 
-  implicit def fileOutputMonoid = new Monoid[SavedFiles] {
-    def op(a: SavedFiles, b: SavedFiles) = SavedFiles(a.urlToPath ++ b.urlToPath)
-
-    def identity: SavedFiles = SavedFiles(Map.empty)
-  }
-
   implicit def setOfStringsMonoid = new Monoid[Set[String]] {
     def op(a: Set[String], b: Set[String]): Set[String] = a ++ b
 

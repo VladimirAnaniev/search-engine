@@ -1,7 +1,7 @@
 package searchengine
 
-import searchengine.http.{HttpClient, HttpResponse}
 import javax.management.InvalidApplicationException
+import searchengine.http.{HttpClient, HttpResponse}
 
 import scala.concurrent.Future
 
