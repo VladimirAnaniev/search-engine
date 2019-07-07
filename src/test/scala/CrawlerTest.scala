@@ -193,12 +193,14 @@ class CrawlerTest extends FlatSpec with Matchers with ScalaFutures {
       .crawl("https://www.test1.com/",
         SpideyConfig(25))(LinkReferences).futureValue.linkToReferences shouldBe
       Map(
-        "https://www.test1.com/service3/" -> 1,
-        "https://www.test1.com/service4/" -> 1,
-        "https://www.test2.com/" -> 1,
-        "https://www.test1.com/service2/" -> 1,
-        "https://www.test1.com/service1/" -> 1,
-        "https://www.test1.com/" -> 3)
+        ("https://www.test1.com/service3/", "https://www.test1.com/service4/") -> 1,
+        ("https://www.test1.com/service2/", "https://www.test1.com/service3/") -> 1,
+        ("https://www.test1.com/", "https://www.test2.com/") -> 1,
+        ("https://www.test1.com/service1/", "https://www.test1.com/") -> 1,
+        ("https://www.test1.com/service3/", "https://www.test1.com/") -> 1,
+        ("https://www.test1.com/service2/", "https://www.test1.com/") -> 1,
+        ("https://www.test1.com/", "https://www.test1.com/service1/") -> 1,
+        ("https://www.test1.com/service1/", "https://www.test1.com/service2/") -> 1)
   }
 
   "WordOccurence" should "contain proper word occurence count" in {
