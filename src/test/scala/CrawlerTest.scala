@@ -7,7 +7,7 @@ import searchengine.html.HtmlUtils
 import searchengine.http.HttpUtils
 import searchengine.math.Monoid._
 import searchengine.math.Monoid.ops._
-import searchengine.processors.{BrokenLinkDetector, FileOutput, WordCount, WordCounter}
+import searchengine.processors.{BrokenLinkDetector, FileOutput, LinkReferences, LinkReferencesMap, WordCount, WordCounter}
 import javax.management.InvalidApplicationException
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FlatSpec, Matchers}
@@ -186,6 +186,19 @@ class CrawlerTest extends FlatSpec with Matchers with ScalaFutures {
 
     future.futureValue.wordToCount shouldBe
       Map("text" -> 1, "response" -> 1, "1" -> 1)
+  }
+
+  "LinkReferences" should "contain proper reference count" in {
+    testSpidey
+      .crawl("https://www.test1.com/",
+        SpideyConfig(25))(LinkReferences).futureValue.linkToReferences shouldBe
+      Map(
+        "https://www.test1.com/service3/" -> 1,
+        "https://www.test1.com/service4/" -> 1,
+        "https://www.test2.com/" -> 1,
+        "https://www.test1.com/service2/" -> 1,
+        "https://www.test1.com/service1/" -> 1,
+        "https://www.test1.com/" -> 3)
   }
 }
 

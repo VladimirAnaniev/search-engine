@@ -57,16 +57,23 @@ object MockHttpClient {
          |<a href="https://www.test1.com/service1/"></a>"""".stripMargin)
 
   val test1ResponseService1 =
-    mockHttpResponseFactory.createHttpResponse(s""""<a href="https://www.test1.com/service2/">service1</a>""")
+    mockHttpResponseFactory.createHttpResponse(
+      s""""<a href="https://www.test1.com/service2/">service1</a>
+         |<a href="https://www.test1.com/"></a>"""".stripMargin)
 
   val test1ResponseService2 =
-    mockHttpResponseFactory.createHttpResponse(s""""<a href="https://www.test1.com/service3/">service2</a>""")
+    mockHttpResponseFactory.createHttpResponse(
+      s""""<a href="https://www.test1.com/service3/">service2</a>
+         |<a href="https://www.test1.com/"></a>""".stripMargin)
 
   val test1ResponseService3 =
-    mockHttpResponseFactory.createHttpResponse(s""""<a href="https://www.test1.com/service4/">service3</a>""")
+    mockHttpResponseFactory.createHttpResponse(
+      s""""<a href="https://www.test1.com/service4/">service3</a>
+         |<a href="https://www.test1.com/"></a>""".stripMargin)
 
   val test1ResponseService4 =
-    mockHttpResponseFactory.createHttpResponse("service4notfound", 404)
+    mockHttpResponseFactory.createHttpResponse(
+      """<a href="https://www.test1.com/">service4notfound</a>""", 404)
 
   val test2Response =
     mockHttpResponseFactory.createHttpResponse(
