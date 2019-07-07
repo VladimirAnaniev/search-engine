@@ -12,4 +12,9 @@ class ApplicationController(cc: ControllerComponents,
   def index = Action { request =>
     Ok(views.html.index())
   }
+
+  def search(keyword: String) = Action { request =>
+
+    Ok(views.html.index())
+  }
 }

@@ -95,4 +95,15 @@ object Database {
 
     f1 ++ f2
   }
+
+
+
+
+//  def search(keyword: String, limitRows: Int = 20): Future[Seq[((String, String), Unit)]] =
+//    database.run(
+//      wordOccurrencesCountQuery
+//        .groupBy(tuple => (tuple.link, tuple.word))
+//        .map { case (linkWordPair, group) => linkWordPair -> group.sum }
+//        .take(limitRows)
+//        .result)
 }

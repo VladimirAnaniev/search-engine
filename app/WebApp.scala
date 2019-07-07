@@ -5,11 +5,17 @@ import play.api.libs.ws.ahc.AhcWSComponents
 import play.api.mvc.EssentialFilter
 import play.api.routing.Router
 import play.api.routing.sird._
-import play.api.{Application, ApplicationLoader, BuiltInComponentsFromContext}
+import play.api.{Application, ApplicationLoader, BuiltInComponentsFromContext, LoggerConfigurator, Logging}
 import play.filters.HttpFiltersComponents
+import services.CrawlerTask
 
 class WebAppLoader extends ApplicationLoader {
-  def load(context: Context): Application = new WebApp(context).application
+  def load(context: Context): Application = {
+    LoggerConfigurator(context.environment.classLoader).foreach {
+      _.configure(context.environment, context.initialConfiguration, Map.empty)
+    }
+    new WebApp(context).application
+  }
 }
 
 class WebApp(context: Context)
@@ -17,7 +23,8 @@ class WebApp(context: Context)
     with HttpFiltersComponents
     with AhcWSComponents
     with AssetsComponents
-    with SlickComponents {
+//    with SlickComponents
+    with Logging {
 
   override def httpFilters: Seq[EssentialFilter] = Seq.empty // disables filters from HttpFiltersComponents, like CSRF
 
@@ -25,8 +32,15 @@ class WebApp(context: Context)
 
   val mainRoutes: Router.Routes = {
     case GET(p"/") => applicationController.index
+    case GET(p"/?keyword=$keyword") => applicationController.search(keyword)
     case GET(p"/assets/$file*") => assets.versioned(path = "/public", file = file)
   }
 
+  private def initializeCrawlerTask(): Unit = {
+    logger.info("Configuring Crawler task.")
+    new CrawlerTask(actorSystem)
+  }
+
   lazy val router: Router = Router.from(mainRoutes)
+  initializeCrawlerTask()
 }

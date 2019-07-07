@@ -50,7 +50,7 @@ class Spidey(httpClient: HttpClient)(implicit ex: ExecutionContext) {
 
         val newToVisit = urlToResponseMap.flatMap { case (url, response) =>
           if (response.isHTMLResource) {
-            HtmlUtils.linksOf(response.body, url).distinct.filter(shouldBeVisited)
+            HtmlUtils.linksOf(response.body, url).distinct.filter(HttpUtils.isValidHttp).filter(shouldBeVisited)
           } else {
             List.empty
           }
