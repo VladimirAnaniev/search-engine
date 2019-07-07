@@ -29,10 +29,13 @@
             <input type="submit" style="position: absolute; left: -9999px; width: 1px; height: 1px;" tabindex="-1" />
         </form>
 
-@*        foreach item*@
-    @for(link <- links) {
-    <div>@link</div>
-    }
+
+        <div class="ui link list">
+        @for(link <- links) {
+            <a class="item" href="@link">@link</a>
+        }
+        </div>
+
 
     </div>
 
