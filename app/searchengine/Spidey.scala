@@ -29,9 +29,9 @@ class Spidey(httpClient: HttpClient)(implicit ex: ExecutionContext) {
 
       def processUrl(url: String): Future[O] = doGetRequest(url, config.retriesOnError)
         .andThen {
-          case Success(response) => urlToResponseMap += url -> response
+          case Success(response) => urlToResponseMap += response.url -> response
         }
-        .flatMap { response => processor(url, response) }
+        .flatMap { response => processor(response.url, response) }
         .recover {
           case t => if (config.tolerateErrors) Monoid[O].identity else throw t
         }

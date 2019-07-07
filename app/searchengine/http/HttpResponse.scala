@@ -11,6 +11,8 @@ trait HttpResponse {
 
   def bodyAsBytes: Array[Byte]
 
+  def url: String
+
   def body: String = {
     val charset = contentType.flatMap(_.charset).getOrElse(StandardCharsets.UTF_8)
 
