@@ -1,4 +1,4 @@
-name := "search-engine"
+name := "spiders-from-mars"
 version := "0.1"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
@@ -14,6 +14,11 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.0.5" % "test",
 
   "ch.qos.logback" % "logback-classic" % "1.2.3",
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
+
+  "com.typesafe.slick" %% "slick" % "3.3.0",
+  "mysql" % "mysql-connector-java" % "5.1.34",
+  
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
   ws, // Web client library, coming from the Play Framework
   "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.2" % Test
