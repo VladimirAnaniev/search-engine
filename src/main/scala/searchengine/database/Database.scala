@@ -31,28 +31,28 @@ final class LinkReferencesCountTable(tag: Tag) extends Table[LinkReferencesCount
 }
 
 object Database {
-  val database = slick.jdbc.MySQLProfile.backend.Database.forConfig("search-engine")
+  private val database = slick.jdbc.MySQLProfile.backend.Database.forConfig("search-engine")
 
   // Base query for querying the word occurrence table:
-  val wordOccurrencesCountQuery = TableQuery[WordOccurrenceCountTable]
+  private val wordOccurrencesCountQuery = TableQuery[WordOccurrenceCountTable]
 
   // Base query for querying the link references table:
-  val linkReferencesCountQuery = TableQuery[LinkReferencesCountTable]
+  private val linkReferencesCountQuery = TableQuery[LinkReferencesCountTable]
 
-  val createTablesAction = wordOccurrencesCountQuery.schema.create andThen linkReferencesCountQuery.schema.create
+  private val createTablesAction = wordOccurrencesCountQuery.schema.create andThen linkReferencesCountQuery.schema.create
 
-  def insertAction(tuple: WordOccurrenceCount) = wordOccurrencesCountQuery += tuple
+  private def insertAction(tuple: WordOccurrenceCount) = wordOccurrencesCountQuery += tuple
 
-  def insertAction(tuple: LinkReferencesCount) = linkReferencesCountQuery += tuple
+  private def insertAction(tuple: LinkReferencesCount) = linkReferencesCountQuery += tuple
 
-  def updateAction(tuple: WordOccurrenceCount) =
+  private def updateAction(tuple: WordOccurrenceCount) =
     wordOccurrencesCountQuery
       .filter(w => w.link === tuple.link && w.word === tuple.word)
       .map(_.occurrenceCount)
       .update(tuple.occurrenceCount)
 
 
-  def updateAction(tuple: LinkReferencesCount) =
+  private def updateAction(tuple: LinkReferencesCount) =
     linkReferencesCountQuery
       .filter(_.link === tuple.link)
       .map(_.referenceCount)
