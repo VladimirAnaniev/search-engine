@@ -29,12 +29,12 @@ object DatabaseTest extends App {
 
   def getFutureResultBlocking[R](f: Future[R]) = Await.result(f, Duration.Inf)
 
-  val httpClient = new AsyncHttpClient
+  val httpClient = new MockHttpClient
   val spidey = new Spidey(httpClient)
 
   val result = getFutureResultBlocking(spidey
-    .crawl("https://en.wikipedia.org/wiki/Adolf_Hitler",
-      SpideyConfig(0))(LinkDataProcessor))
+    .crawl("https://www.test1.com/",
+      SpideyConfig(30))(LinkDataProcessor))
 
   Await.result(Future.sequence(Database.addLinkDataToDatabase(result)), Duration.Inf)
 
