@@ -6,6 +6,7 @@ import java.util.UUID
 
 import searchengine.Processor
 import searchengine.http.HttpResponse
+import searchengine.math.Monoid
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -28,7 +29,7 @@ class FileOutput(targetDir: String)
     if (response.isSuccess)
       SavedFiles(Map(url -> Files.write(generatePathFor(url), FileOutput.responseToString(response).getBytes)))
     else
-      SavedFiles(Map.empty)
+      Monoid[SavedFiles].identity
   }
 }
 

@@ -3,6 +3,7 @@ package searchengine.processors
 import searchengine.Processor
 import searchengine.html.HtmlUtils
 import searchengine.http.HttpResponse
+import searchengine.math.Monoid
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -18,6 +19,6 @@ object LinkReferences extends Processor[LinkReferencesMap] {
 
       LinkReferencesMap(references)
     }
-    else LinkReferencesMap(Map.empty)
+    else Monoid[LinkReferencesMap].identity
   }
 }

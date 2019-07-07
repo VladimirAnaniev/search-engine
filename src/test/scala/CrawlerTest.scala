@@ -4,7 +4,7 @@ import java.io.File
 import java.util.concurrent.Executors
 
 import searchengine.html.HtmlUtils
-import searchengine.http.HttpUtils
+import searchengine.http.{AsyncHttpClient, HttpUtils}
 import searchengine.math.Monoid._
 import searchengine.math.Monoid.ops._
 import searchengine.processors.{BrokenLinkDetector, FileOutput, LinkReferences, LinkReferencesMap, WordCount, WordCounter, WordOccurence, WordOccurencerCounter}
@@ -214,17 +214,12 @@ class CrawlerTest extends FlatSpec with Matchers with ScalaFutures {
 }
 
 object Test extends App {
+  val httpClient = new AsyncHttpClient
+  val spidey = new Spidey(httpClient)
+
   def getFutureResultBlocking[R](f: Future[R]) = Await.result(f, Duration.Inf)
 
-  val mockHttpClient = new MockHttpClient
-
-  import searchengine.processors.WordCount
-
-  val httpResponse = getFutureResultBlocking(mockHttpClient.get("https://www.test1.com/"))
-
-  val links = HtmlUtils.linksOf(httpResponse.body, "https://www.test1.com/")
-
-  println(WordCount.wordsOf(HtmlUtils.toText(httpResponse.body)))
-
-  println(HttpUtils.sameDomain("https://www.test1.com/", "https://www.test1.com/"))
+  println(getFutureResultBlocking(spidey
+    .crawl("https://en.wikipedia.org/wiki/Adolf_Hitler",
+      SpideyConfig(0))(WordCounter)).wordToCount)
 }

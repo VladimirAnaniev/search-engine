@@ -3,6 +3,7 @@ package searchengine.processors
 import searchengine.Processor
 import searchengine.html.HtmlUtils
 import searchengine.http.HttpResponse
+import searchengine.math.Monoid
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -21,6 +22,6 @@ object WordCounter extends Processor[WordCount] {
           (count, word) => count + (word -> (count.getOrElse(word, 0) + 1))
         })
     }
-    else WordCount(Map.empty)
+    else Monoid[WordCount].identity
   }
 }

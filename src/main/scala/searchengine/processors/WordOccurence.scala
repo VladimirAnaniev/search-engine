@@ -2,6 +2,7 @@ package searchengine.processors
 
 import searchengine.Processor
 import searchengine.http.HttpResponse
+import searchengine.math.Monoid
 import searchengine.processors.WordOccurence.{Link, OccurrenceCount, Word}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -22,5 +23,5 @@ object WordOccurencerCounter extends Processor[WordOccurence] {
     if (response.isSuccess && (response.isHTMLResource || response.isPlainTextResource))
       WordCounter(url, response).map(_.wordToCount).map(count => WordOccurence(Map(url -> count)))
     else
-      Future.successful(WordOccurence(Map.empty))
+      Future.successful(Monoid[WordOccurence].identity)
 }
