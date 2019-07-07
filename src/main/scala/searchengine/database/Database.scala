@@ -1,7 +1,10 @@
 package searchengine.database
 
 import searchengine.processors._
+import slick.dbio.Effect
 import slick.jdbc.MySQLProfile.api._
+import slick.lifted.QueryBase
+import slick.sql.FixedSqlAction
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -39,26 +42,29 @@ object Database {
   // Base query for querying the link references table:
   private val linkReferencesCountQuery = TableQuery[LinkReferencesCountTable]
 
-  private val createTablesAction = wordOccurrencesCountQuery.schema.create andThen linkReferencesCountQuery.schema.create
+  private def createTablesAction: DBIOAction[Unit, NoStream, Effect.Schema] =
+    wordOccurrencesCountQuery.schema.create andThen linkReferencesCountQuery.schema.create
 
-  private def insertAction(tuple: WordOccurrenceCount) = wordOccurrencesCountQuery += tuple
+  private def insertAction(tuple: WordOccurrenceCount): FixedSqlAction[Int, NoStream, Effect.Write] =
+    wordOccurrencesCountQuery += tuple
 
-  private def insertAction(tuple: LinkReferencesCount) = linkReferencesCountQuery += tuple
+  private def insertAction(tuple: LinkReferencesCount): FixedSqlAction[Int, NoStream, Effect.Write] =
+    linkReferencesCountQuery += tuple
 
-  private def updateAction(tuple: WordOccurrenceCount) =
+  private def updateAction(tuple: WordOccurrenceCount): FixedSqlAction[Int, NoStream, Effect.Write] =
     wordOccurrencesCountQuery
       .filter(w => w.link === tuple.link && w.word === tuple.word)
       .map(_.occurrenceCount)
       .update(tuple.occurrenceCount)
 
 
-  private def updateAction(tuple: LinkReferencesCount) =
+  private def updateAction(tuple: LinkReferencesCount): FixedSqlAction[Int, NoStream, Effect.Write] =
     linkReferencesCountQuery
       .filter(_.link === tuple.link)
       .map(_.referenceCount)
       .update(tuple.references)
 
-  def addLinkReferencesToDatabase(references: LinkReferencesMap) = references.linkToReferences.foreach(keyValuePair => {
+  def addLinkReferencesToDatabase(references: LinkReferencesMap): Unit = references.linkToReferences.foreach(keyValuePair => {
     val selectLinkReference =
       Await.result(database.run(
         linkReferencesCountQuery.filter(_.link === keyValuePair._1).map(_.referenceCount).result),
@@ -76,7 +82,7 @@ object Database {
     }
   })
 
-  def addWordOccurenceCountToDatabase(wordOccurrence: WordOccurence) =
+  def addWordOccurenceCountToDatabase(wordOccurrence: WordOccurence): Unit =
     wordOccurrence.linkWordOccurenceMap.foreach { keyValuePair =>
       val (curLink, wordOccurrenceMap) = keyValuePair
 
