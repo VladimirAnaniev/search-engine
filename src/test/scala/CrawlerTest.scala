@@ -3,14 +3,14 @@ package searchengine
 import java.io.File
 import java.util.concurrent.Executors
 
+import javax.management.InvalidApplicationException
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.{FlatSpec, Matchers}
 import searchengine.html.HtmlUtils
 import searchengine.http.{AsyncHttpClient, HttpUtils}
 import searchengine.math.Monoid._
 import searchengine.math.Monoid.ops._
-import searchengine.processors.{BrokenLinkDetector, FileOutput, LinkReferences, LinkReferencesMap, WordCount, WordCounter, WordOccurence, WordOccurencerCounter}
-import javax.management.InvalidApplicationException
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{FlatSpec, Matchers}
+import searchengine.processors._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
@@ -204,12 +204,17 @@ class CrawlerTest extends FlatSpec with Matchers with ScalaFutures {
   "WordOccurence" should "contain proper word occurence count" in {
     testSpidey
       .crawl("https://www.test5.com/",
-        SpideyConfig(25))(WordOccurencerCounter).futureValue.linkWordOccurenceMap shouldBe
-      Map(
-        "https://www.test5.com/service3/" -> Map("fuck" -> 1, "dogs" -> 1, "and" -> 1, "cats" -> 1),
-        "https://www.test5.com/service2/" -> Map("dog" -> 4, "cat" -> 2),
-        "https://www.test5.com/service1/" -> Map("dog" -> 2, "cat" -> 1),
-        "https://www.test5.com/" -> Map("dog" -> 3, "cat" -> 2))
+        SpideyConfig(25))(WordOccurrenceCounter).futureValue.linkWordOccurrenceMap shouldBe
+        Map(("https://www.test5.com/","cat") -> 2,
+          ("https://www.test5.com/service3/","fuck") -> 1,
+          ("https://www.test5.com/service2/","cat") -> 2,
+          ("https://www.test5.com/service3/","dogs") -> 1,
+          ("https://www.test5.com/service1/","cat") -> 1,
+          ("https://www.test5.com/service3/","and") -> 1,
+          ("https://www.test5.com/service3/","cats") -> 1,
+          ("https://www.test5.com/service1/","dog") -> 2,
+          ("https://www.test5.com/service2/","dog") -> 4,
+          ("https://www.test5.com/","dog") -> 3)
   }
 }
 

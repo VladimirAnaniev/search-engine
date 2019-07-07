@@ -1,6 +1,6 @@
 package searchengine.math
 
-import searchengine.processors.{LinkData, LinkReferencesMap, SavedFiles, WordCount, WordOccurence}
+import searchengine.processors._
 
 trait Monoid[M] {
   def op(a: M, b: M): M
@@ -108,14 +108,13 @@ object Monoid {
     def identity: LinkReferencesMap = LinkReferencesMap(Map.empty)
   }
 
-  implicit def wordOccurenceMonoid = new Monoid[WordOccurence] {
+  implicit def wordOccurrenceMonoid = new Monoid[WordOccurrence] {
 
     import ops._
 
-    def op(a: WordOccurence, b: WordOccurence): WordOccurence =
-      WordOccurence(a.linkWordOccurenceMap |+| b.linkWordOccurenceMap)
+    def op(a: WordOccurrence, b: WordOccurrence): WordOccurrence = WordOccurrence(a.linkWordOccurrenceMap |+| b.linkWordOccurrenceMap)
 
-    def identity: WordOccurence = WordOccurence(Map.empty)
+    def identity: WordOccurrence = WordOccurrence(Map.empty)
   }
 
   implicit def linkDataMonoid = new Monoid[LinkData] {
@@ -124,7 +123,7 @@ object Monoid {
 
     def op(a: LinkData, b: LinkData): LinkData = LinkData(a.wordOccurrence |+| b.wordOccurrence, a.linkReferences |+| b.linkReferences)
 
-    def identity: LinkData = LinkData(WordOccurence(Map.empty), LinkReferencesMap(Map.empty))
+    def identity: LinkData = LinkData(WordOccurrence(Map.empty), LinkReferencesMap(Map.empty))
   }
 
 }

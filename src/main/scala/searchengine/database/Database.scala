@@ -3,15 +3,15 @@ package searchengine.database
 import searchengine.processors._
 import slick.dbio.Effect
 import slick.jdbc.MySQLProfile.api._
-import slick.lifted.QueryBase
 import slick.sql.FixedSqlAction
 
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
+import scala.collection.immutable
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 final case class WordOccurrenceCount(word: String, link: String, occurrenceCount: Int)
 
-final class WordOccurrenceCountTable(tag: Tag) extends Table[WordOccurrenceCount](tag, "word-occurrence-count") {
+final class WordOccurrenceCountTable(tag: Tag) extends Table[WordOccurrenceCount](tag, "word_occurrence_count") {
   def link = column[String]("link")
 
   def word = column[String]("word")
@@ -25,7 +25,7 @@ final class WordOccurrenceCountTable(tag: Tag) extends Table[WordOccurrenceCount
 
 final case class LinkReferencesCount(link: String, references: Int)
 
-final class LinkReferencesCountTable(tag: Tag) extends Table[LinkReferencesCount](tag, "link-references-count") {
+final class LinkReferencesCountTable(tag: Tag) extends Table[LinkReferencesCount](tag, "link_references_count") {
   def link = column[String]("link", O.PrimaryKey)
 
   def referenceCount = column[Int]("referenceCount")
@@ -34,7 +34,7 @@ final class LinkReferencesCountTable(tag: Tag) extends Table[LinkReferencesCount
 }
 
 object Database {
-  private val database = slick.jdbc.MySQLProfile.backend.Database.forConfig("search-engine")
+  val database = slick.jdbc.MySQLProfile.backend.Database.forConfig("search-engine")
 
   // Base query for querying the word occurrence table:
   private val wordOccurrencesCountQuery = TableQuery[WordOccurrenceCountTable]
@@ -42,8 +42,10 @@ object Database {
   // Base query for querying the link references table:
   private val linkReferencesCountQuery = TableQuery[LinkReferencesCountTable]
 
-  private def createTablesAction: DBIOAction[Unit, NoStream, Effect.Schema] =
-    wordOccurrencesCountQuery.schema.create andThen linkReferencesCountQuery.schema.create
+  def createTablesActions = List(createWordOccurenceTableAction, createLinkReferencesTableAction)
+
+  def createWordOccurenceTableAction = wordOccurrencesCountQuery.schema.create
+  def createLinkReferencesTableAction = linkReferencesCountQuery.schema.create
 
   private def insertAction(tuple: WordOccurrenceCount): FixedSqlAction[Int, NoStream, Effect.Write] =
     wordOccurrencesCountQuery += tuple
@@ -57,53 +59,33 @@ object Database {
       .map(_.occurrenceCount)
       .update(tuple.occurrenceCount)
 
-
   private def updateAction(tuple: LinkReferencesCount): FixedSqlAction[Int, NoStream, Effect.Write] =
     linkReferencesCountQuery
       .filter(_.link === tuple.link)
       .map(_.referenceCount)
       .update(tuple.references)
 
-  def addLinkReferencesToDatabase(references: LinkReferencesMap): Unit = references.linkToReferences.foreach(keyValuePair => {
-    val selectLinkReference =
-      Await.result(database.run(
-        linkReferencesCountQuery.filter(_.link === keyValuePair._1).map(_.referenceCount).result),
-        Duration.Inf)
-
-    if (selectLinkReference.isEmpty) {
-      // insert
-      Await.result(database.run(
-        insertAction(LinkReferencesCount(keyValuePair._1, keyValuePair._2))), Duration.Inf)
-    }
-    else {
-      // update
-      Await.result(database.run(
-        updateAction(LinkReferencesCount(keyValuePair._1, keyValuePair._2 + selectLinkReference.head))), Duration.Inf)
-    }
-  })
-
-  def addWordOccurenceCountToDatabase(wordOccurrence: WordOccurence): Unit =
-    wordOccurrence.linkWordOccurenceMap.foreach { keyValuePair =>
-      val (curLink, wordOccurrenceMap) = keyValuePair
-
-      wordOccurrenceMap.foreach { keyValuePair =>
-        val (word, occurence) = keyValuePair
-
-        val selectWordOccurence =
-          Await.result(database.run(
-            wordOccurrencesCountQuery.filter(
-              tuple => tuple.link === curLink && tuple.word === word).result), Duration.Inf)
-
-        if (selectWordOccurence.isEmpty) {
-          // insert
-          Await.result(database.run(insertAction(WordOccurrenceCount(word, curLink, occurence))), Duration.Inf)
-        }
-        else {
-          // update
-          Await.result(database.run(
-            updateAction(WordOccurrenceCount(word, curLink, selectWordOccurence.head.occurrenceCount + occurence))),
-            Duration.Inf)
-        }
+  private def addLinkReferencesToDatabase(references: LinkReferencesMap): immutable.Iterable[Future[Int]] =
+    references.linkToReferences.map { case (link, refs) =>
+      database.run(linkReferencesCountQuery.filter(_.link === link).map(_.referenceCount).result).flatMap { res =>
+        if (res.isEmpty) database.run(insertAction(LinkReferencesCount(link, refs)))
+        else database.run(updateAction(LinkReferencesCount(link, res.head + refs)))
       }
     }
+
+  private def addWordOccurenceCountToDatabase(wordOccurrence: WordOccurrence): immutable.Iterable[Future[Int]] =
+    wordOccurrence.linkWordOccurrenceMap.map { case (linkWordPair, count) =>
+      database.run(wordOccurrencesCountQuery
+        .filter(entry => entry.link === linkWordPair._1 && entry.word === linkWordPair._2).map(_.occurrenceCount).result)
+        .flatMap(res =>
+          if (res.isEmpty) database.run(insertAction(WordOccurrenceCount(linkWordPair._2, linkWordPair._1, count)))
+          else database.run(updateAction(WordOccurrenceCount(linkWordPair._2, linkWordPair._1, count + res.head))))
+    }
+
+  def addLinkDataToDatabase(linkData: LinkData) = {
+    val f1 = addLinkReferencesToDatabase(linkData.linkReferences)
+    val f2 = addWordOccurenceCountToDatabase(linkData.wordOccurrence)
+
+    f1 ++ f2
+  }
 }

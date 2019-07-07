@@ -3,25 +3,25 @@ package searchengine.processors
 import searchengine.Processor
 import searchengine.http.HttpResponse
 import searchengine.math.Monoid
-import searchengine.processors.WordOccurence.{Link, OccurrenceCount, Word}
+import searchengine.processors.WordOccurrence.{Link, OccurrenceCount, Word}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-case class WordOccurence(linkWordOccurenceMap: Map[Link, Map[Word, OccurrenceCount]])
+case class WordOccurrence(linkWordOccurrenceMap: Map[(Link, Word), OccurrenceCount])
 
-object WordOccurence {
+object WordOccurrence {
   type Link = String
   type OccurrenceCount = Int
   type Word = String
-
-  def wordsOf(text: String): List[String] = text.split("\\W+").toList.filter(_.nonEmpty)
 }
 
-object WordOccurencerCounter extends Processor[WordOccurence] {
-  def apply(url: String, response: HttpResponse): Future[WordOccurence] =
+object WordOccurrenceCounter extends Processor[WordOccurrence] {
+  def apply(url: String, response: HttpResponse): Future[WordOccurrence] =
     if (response.isSuccess && (response.isHTMLResource || response.isPlainTextResource))
-      WordCounter(url, response).map(_.wordToCount).map(count => WordOccurence(Map(url -> count)))
+      WordCounter(url, response).map(_.wordToCount.map {
+        case (word, count) => (url, word) -> count
+      }).map(WordOccurrence(_))
     else
-      Future.successful(Monoid[WordOccurence].identity)
+      Future.successful(Monoid[WordOccurrence].identity)
 }
