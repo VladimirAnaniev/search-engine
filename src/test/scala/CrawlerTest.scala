@@ -3,21 +3,21 @@ package searchengine
 import java.io.File
 import java.util.concurrent.Executors
 
-import searchengine.html.HtmlUtils
-import searchengine.http.HttpUtils
-import searchengine.math.Monoid._
-import searchengine.math.Monoid.ops._
-import searchengine.processors.{BrokenLinkDetector, FileOutput, WordCount, WordCounter}
 import javax.management.InvalidApplicationException
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FlatSpec, Matchers}
+import searchengine.html.HtmlUtils
+import searchengine.http.{AsyncHttpClient, HttpUtils}
+import searchengine.math.Monoid._
+import searchengine.math.Monoid.ops._
+import searchengine.processors._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.io.Source
 
-class Test extends FlatSpec with Matchers with ScalaFutures {
+class CrawlerTest extends FlatSpec with Matchers with ScalaFutures {
   val mockHttpClient = new MockHttpClient
   val testSpidey = new Spidey(mockHttpClient)
 
@@ -187,20 +187,46 @@ class Test extends FlatSpec with Matchers with ScalaFutures {
     future.futureValue.wordToCount shouldBe
       Map("text" -> 1, "response" -> 1, "1" -> 1)
   }
+
+  "LinkReferences" should "contain proper reference count" in {
+    testSpidey
+      .crawl("https://www.test1.com/",
+        SpideyConfig(25))(LinkReferences).futureValue.linkToReferences shouldBe
+      Map(
+        ("https://www.test1.com/service3/", "https://www.test1.com/service4/") -> 1,
+        ("https://www.test1.com/service2/", "https://www.test1.com/service3/") -> 1,
+        ("https://www.test1.com/", "https://www.test2.com/") -> 1,
+        ("https://www.test1.com/service1/", "https://www.test1.com/") -> 1,
+        ("https://www.test1.com/service3/", "https://www.test1.com/") -> 1,
+        ("https://www.test1.com/service2/", "https://www.test1.com/") -> 1,
+        ("https://www.test1.com/", "https://www.test1.com/service1/") -> 1,
+        ("https://www.test1.com/service1/", "https://www.test1.com/service2/") -> 1)
+  }
+
+  "WordOccurence" should "contain proper word occurence count" in {
+    testSpidey
+      .crawl("https://www.test5.com/",
+        SpideyConfig(25))(WordOccurrenceCounter).futureValue.linkWordOccurrenceMap shouldBe
+        Map(("https://www.test5.com/","cat") -> 2,
+          ("https://www.test5.com/service3/","fuck") -> 1,
+          ("https://www.test5.com/service2/","cat") -> 2,
+          ("https://www.test5.com/service3/","dogs") -> 1,
+          ("https://www.test5.com/service1/","cat") -> 1,
+          ("https://www.test5.com/service3/","and") -> 1,
+          ("https://www.test5.com/service3/","cats") -> 1,
+          ("https://www.test5.com/service1/","dog") -> 2,
+          ("https://www.test5.com/service2/","dog") -> 4,
+          ("https://www.test5.com/","dog") -> 3)
+  }
 }
 
 object Test extends App {
+  val httpClient = new AsyncHttpClient
+  val spidey = new Spidey(httpClient)
+
   def getFutureResultBlocking[R](f: Future[R]) = Await.result(f, Duration.Inf)
 
-  val mockHttpClient = new MockHttpClient
-
-  import searchengine.processors.WordCount
-
-  val httpResponse = getFutureResultBlocking(mockHttpClient.get("https://www.test1.com/"))
-
-  val links = HtmlUtils.linksOf(httpResponse.body, "https://www.test1.com/")
-
-  println(WordCount.wordsOf(HtmlUtils.toText(httpResponse.body)))
-
-  println(HttpUtils.sameDomain("https://www.test1.com/", "https://www.test1.com/"))
+  println(getFutureResultBlocking(spidey
+    .crawl("https://en.wikipedia.org/wiki/Adolf_Hitler",
+      SpideyConfig(0))(WordCounter)).wordToCount)
 }
