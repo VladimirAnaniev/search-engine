@@ -2,7 +2,7 @@
 * This template takes a single argument, a String containing a
 * message to display.
 *@
-@(links: List[AnyVal])
+@(links: List[String])
 
 @*
 * Call the `main` template with two arguments. The first
@@ -19,7 +19,7 @@
             <i aria-hidden="true" class="searchengin icon"></i>
             <div class="content">Search Engine</div>
         </h2>
-        <form class="ui form">
+        <form class="ui form" action="search">
             <div class="ui fluid icon input">
                 <label for="keyword"></label><input id="keyword" name="keyword" type="text" placeholder="What do you want to search for?">
                 <i class="search icon"></i>
@@ -30,6 +30,9 @@
         </form>
 
 @*        foreach item*@
+    @for(link <- links) {
+    <div>@link</div>
+    }
 
     </div>
 

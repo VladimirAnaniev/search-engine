@@ -32,7 +32,7 @@ class WebApp(context: Context)
 
   val mainRoutes: Router.Routes = {
     case GET(p"/") => applicationController.index
-    case GET(p"/?keyword=$keyword") => applicationController.search(keyword)
+    case GET(p"/search" ? q"keyword=$keyword") => applicationController.search(keyword)
     case GET(p"/assets/$file*") => assets.versioned(path = "/public", file = file)
   }
 

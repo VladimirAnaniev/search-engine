@@ -29,7 +29,10 @@ class CrawlerTask @Inject()(actorSystem: ActorSystem)(implicit executionContext:
         logger.info("Crawler task finished successfully")
         // TODO: Database should be injected
         Future.sequence(Database.addLinkDataToDatabase(data)).onComplete {
-          case Success(data) => logger.info(s"$data rows inserted into database")
+          case Success(data) => {
+            val rowsInserted = data.sum
+            logger.info(s"$rowsInserted rows inserted into database")
+          }
           case Failure(err) => logger.error("Error inserting data into database", err)
         }
       }
