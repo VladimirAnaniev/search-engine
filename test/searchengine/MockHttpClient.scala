@@ -6,8 +6,10 @@ import searchengine.http.{HttpClient, HttpResponse}
 import scala.concurrent.Future
 
 class MockHttpResponseFactory {
-  def createHttpResponse(responseBody: String, statusCode: Int = 200) = new HttpResponse {
+  def createHttpResponse(urll: String, responseBody: String, statusCode: Int = 200) = new HttpResponse {
     def status: Int = statusCode
+
+    def url: String = urll
 
     def headers: Map[String, String] = Map("content-type" -> "text/html")
 
@@ -56,61 +58,61 @@ object MockHttpClient {
   val textResponse3 = "text response 3"
 
   val test1Response =
-    mockHttpResponseFactory.createHttpResponse(
+    mockHttpResponseFactory.createHttpResponse("https://www.test1.com/",
       s""""<a href="https://www.test2.com/">$textResponse1</a>
          |<a href="https://www.test1.com/service1/"></a>"""".stripMargin)
 
   val test1ResponseService1 =
-    mockHttpResponseFactory.createHttpResponse(
+    mockHttpResponseFactory.createHttpResponse("https://www.test1.com/service1/",
       s""""<a href="https://www.test1.com/service2/">service1</a>
          |<a href="https://www.test1.com/"></a>"""".stripMargin)
 
   val test1ResponseService2 =
-    mockHttpResponseFactory.createHttpResponse(
+    mockHttpResponseFactory.createHttpResponse("https://www.test1.com/service2/",
       s""""<a href="https://www.test1.com/service3/">service2</a>
          |<a href="https://www.test1.com/"></a>""".stripMargin)
 
   val test1ResponseService3 =
-    mockHttpResponseFactory.createHttpResponse(
+    mockHttpResponseFactory.createHttpResponse("https://www.test1.com/service3/",
       s""""<a href="https://www.test1.com/service4/">service3</a>
          |<a href="https://www.test1.com/"></a>""".stripMargin)
 
   val test1ResponseService4 =
-    mockHttpResponseFactory.createHttpResponse(
+    mockHttpResponseFactory.createHttpResponse("https://www.test1.com/service4/",
       """<a href="https://www.test1.com/">service4notfound</a>""", 404)
 
   val test2Response =
-    mockHttpResponseFactory.createHttpResponse(
+    mockHttpResponseFactory.createHttpResponse("https://www.test2.com/",
       s""""<a href="https://www.test3.com/">$textResponse2</a>
          |<a href="https://www.test2.com/service1/"></a>"""".stripMargin)
 
   val test2ResponseService1 =
-    mockHttpResponseFactory.createHttpResponse(
+    mockHttpResponseFactory.createHttpResponse("https://www.test2.com/service2/",
       s""""<a href="https://www.test2.com/service2/"></a>""")
 
   val test3Response =
-    mockHttpResponseFactory.createHttpResponse(
+    mockHttpResponseFactory.createHttpResponse("https://www.test3.com/",
       s""""<a href="https://www.test1.com/">$textResponse3</a>
          |<a href="https://www.test4.com/"></a>
      """.stripMargin)
 
   val test4Response =
-    mockHttpResponseFactory.createHttpResponse("test4notfound", 404)
+    mockHttpResponseFactory.createHttpResponse("https://www.test4.com/","test4notfound", 404)
 
   val test5Response =
-    mockHttpResponseFactory.createHttpResponse(
+    mockHttpResponseFactory.createHttpResponse("https://www.test5.com/",
       """<a href="https://www.test5.com/service1/">dog dog dog cat cat</a>""")
 
   val test5ResponseService1 =
-    mockHttpResponseFactory.createHttpResponse(
+    mockHttpResponseFactory.createHttpResponse("https://www.test5.com/service1/",
       """<a href="https://www.test5.com/service2/">dog dog cat</a>""")
 
   val test5ResponseService2 =
-    mockHttpResponseFactory.createHttpResponse(
+    mockHttpResponseFactory.createHttpResponse("https://www.test5.com/service2/",
       """<a href="https://www.test5.com/service3/">dog dog dog dog cat cat</a>""")
 
   val test5ResponseService3 =
-    mockHttpResponseFactory.createHttpResponse(
+    mockHttpResponseFactory.createHttpResponse("https://www.test5.com/service3/",
       """fuck dogs and cats""")
 }
 

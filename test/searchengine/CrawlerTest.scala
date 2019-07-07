@@ -1,8 +1,5 @@
 package searchengine
 
-import java.io.File
-import java.util.concurrent.Executors
-
 import javax.management.InvalidApplicationException
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FlatSpec, Matchers}
@@ -12,9 +9,7 @@ import searchengine.math.Monoid._
 import searchengine.math.Monoid.ops._
 import searchengine.processors._
 
-import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.io.Source
 
 class CrawlerTest extends FlatSpec with Matchers with ScalaFutures {
   val mockHttpClient = new MockHttpClient
@@ -31,7 +26,7 @@ class CrawlerTest extends FlatSpec with Matchers with ScalaFutures {
     links.foreach(HttpUtils.isValidHttp(_) shouldBe true)
     links.head shouldBe "https://www.test2.com/"
     links.tail.head shouldBe "https://www.test1.com/service1/"
-    WordCount.wordsOf(HtmlUtils.toText(httpResponse.body)) shouldBe
+    WordCount.wordsOf(HtmlUtils.toText(httpResponse.body))  should contain theSameElementsAs
       List("text", "response", "1")
   }
 
@@ -45,37 +40,37 @@ class CrawlerTest extends FlatSpec with Matchers with ScalaFutures {
 
   "WordCounter should work correctly and crawl" should "return proper responses when depth is 0" in {
     testSpidey.crawl("https://www.test1.com/",
-      SpideyConfig(0, sameDomainOnly = false))(WordCounter).futureValue.wordToCount shouldBe
+      SpideyConfig(0, sameDomainOnly = false))(WordCounter).futureValue.wordToCount  should contain theSameElementsAs
       Map("text" -> 1, "response" -> 1, "1" -> 1)
   }
 
   it should "return proper responses when depth is 1" in {
     testSpidey.crawl("https://www.test1.com/",
-      SpideyConfig(1, sameDomainOnly = false))(WordCounter).futureValue.wordToCount shouldBe
+      SpideyConfig(1, sameDomainOnly = false))(WordCounter).futureValue.wordToCount  should contain theSameElementsAs
       Map("text" -> 2, "response" -> 2, "1" -> 1, "2" -> 1, "service1" -> 1)
   }
 
   it should "return proper responses when depth is 2" in {
     testSpidey.crawl("https://www.test1.com/",
-      SpideyConfig(2, sameDomainOnly = false))(WordCounter).futureValue.wordToCount shouldBe
+      SpideyConfig(2, sameDomainOnly = false))(WordCounter).futureValue.wordToCount  should contain theSameElementsAs
       Map("text" -> 3, "response" -> 3, "1" -> 1, "2" -> 1, "3" -> 1, "service1" -> 1, "service2" -> 1)
   }
 
   it should "return proper responses when depth is 3" in {
     testSpidey.crawl("https://www.test1.com/",
-      SpideyConfig(3, sameDomainOnly = false))(WordCounter).futureValue.wordToCount shouldBe
+      SpideyConfig(3, sameDomainOnly = false))(WordCounter).futureValue.wordToCount  should contain theSameElementsAs
       Map("text" -> 3, "response" -> 3, "1" -> 1, "2" -> 1, "3" -> 1, "service1" -> 1, "service2" -> 1, "service3" -> 1)
   }
 
   it should "return proper responses depth is a big number" in {
     testSpidey.crawl("https://www.test1.com/",
-      SpideyConfig(1000, sameDomainOnly = false))(WordCounter).futureValue.wordToCount shouldBe
+      SpideyConfig(1000, sameDomainOnly = false))(WordCounter).futureValue.wordToCount  should contain theSameElementsAs
       Map("text" -> 3, "response" -> 3, "1" -> 1, "2" -> 1, "3" -> 1, "service1" -> 1, "service2" -> 1, "service3" -> 1)
   }
 
   it should "return proper responses when depth is a big number and same domain is true" in {
     testSpidey.crawl("https://www.test1.com/",
-      SpideyConfig(1000))(WordCounter).futureValue.wordToCount shouldBe
+      SpideyConfig(1000))(WordCounter).futureValue.wordToCount  should contain theSameElementsAs
       Map("text" -> 1, "response" -> 1, "1" -> 1, "service1" -> 1, "service2" -> 1, "service3" -> 1)
   }
 
@@ -126,14 +121,14 @@ class CrawlerTest extends FlatSpec with Matchers with ScalaFutures {
     val future = spidey.crawl("https://www.testRetriesOnError.com/",
       SpideyConfig(40, retriesOnError = 3, tolerateErrors = false))(WordCounter)
 
-    future.futureValue.wordToCount shouldBe
+    future.futureValue.wordToCount  should contain theSameElementsAs
       Map("text" -> 1, "response" -> 1, "1" -> 1)
   }
 
   "LinkReferences" should "contain proper reference count" in {
     testSpidey
       .crawl("https://www.test1.com/",
-        SpideyConfig(25))(LinkReferences).futureValue.linkToReferences shouldBe
+        SpideyConfig(25))(LinkReferences).futureValue.linkToReferences  should contain theSameElementsAs
       Map(
         ("https://www.test1.com/service3/", "https://www.test1.com/service4/") -> 1,
         ("https://www.test1.com/service2/", "https://www.test1.com/service3/") -> 1,
@@ -148,7 +143,7 @@ class CrawlerTest extends FlatSpec with Matchers with ScalaFutures {
   "WordOccurence" should "contain proper word occurence count" in {
     testSpidey
       .crawl("https://www.test5.com/",
-        SpideyConfig(25))(WordOccurrenceCounter).futureValue.linkWordOccurrenceMap shouldBe
+        SpideyConfig(25))(WordOccurrenceCounter).futureValue.linkWordOccurrenceMap should contain theSameElementsAs
         Map(("https://www.test5.com/","cat") -> 2,
           ("https://www.test5.com/service3/","fuck") -> 1,
           ("https://www.test5.com/service2/","cat") -> 2,
@@ -161,14 +156,3 @@ class CrawlerTest extends FlatSpec with Matchers with ScalaFutures {
           ("https://www.test5.com/","dog") -> 3)
   }
 }
-
-//object Test extends App {
-//  val httpClient = new AsyncHttpClient
-//  val spidey = new Spidey(httpClient)
-//
-//  def getFutureResultBlocking[R](f: Future[R]) = Await.result(f, Duration.Inf)
-//
-//  println(getFutureResultBlocking(spidey
-//    .crawl("https://en.wikipedia.org/wiki/Adolf_Hitler",
-//      SpideyConfig(0))(WordCounter)).wordToCount)
-//}
