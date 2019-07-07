@@ -1,0 +1,30 @@
+@*
+ * This template takes a single argument, a String containing a
+ * message to display.
+ *@
+
+@*
+ * Call the `main` template with two arguments. The first
+ * argument is a `String` with the title of the page, the second
+ * argument is an `Html` object containing the body of the page.
+ *@
+@main("Search Engine") {
+
+    @*
+     * Get an `Html` object by calling the built-in Play welcome
+     * template and passing a `String` message.
+     *@
+
+    <div class="ui very padded container">
+        <h2 class="ui icon center aligned header">
+            <i aria-hidden="true" class="searchengin icon"></i>
+            <div class="content">Search Engine</div>
+        </h2>
+        <div class="ui fluid icon input">
+            <input type="text" placeholder="What do you want to search for?">
+            <i class="search icon"></i>
+        </div>
+    </div>
+
+    <script src="assets/js/test.js"></script>
+}
