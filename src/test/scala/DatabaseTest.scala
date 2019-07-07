@@ -4,7 +4,6 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FlatSpec, Matchers}
 import searchengine.database.Database
 import searchengine.database.Database._
-import searchengine.http.AsyncHttpClient
 import searchengine.processors.LinkDataProcessor
 
 import scala.concurrent.{Await, Future}
@@ -15,8 +14,6 @@ import scala.concurrent.duration.Duration
 class DatabaseTest extends FlatSpec with Matchers with ScalaFutures {
 
   "database" should "contain proper information" in {
-//    Database.database.run(createTablesAction).flatMap { a =>
-//    }
   }
 
 }

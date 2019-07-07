@@ -38,7 +38,7 @@ final class LinkReferencesCountTable(tag: Tag) extends Table[LinkReferencesCount
 }
 
 object Database {
-  val database = slick.jdbc.MySQLProfile.backend.Database.forConfig("search-engine")
+  val database = slick.jdbc.MySQLProfile.backend.Database.forConfig("search_engine")
 
   // Base query for querying the word occurrence table:
   private val wordOccurrencesCountQuery = TableQuery[WordOccurrenceCountTable]
