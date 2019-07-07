@@ -5,8 +5,7 @@ import searchengine.http.HttpResponse
 import searchengine.processors.WordOccurence.{Link, OccurrenceCount, Word}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Future
 
 case class WordOccurence(linkWordOccurenceMap: Map[Link, Map[Word, OccurrenceCount]])
 
@@ -19,10 +18,9 @@ object WordOccurence {
 }
 
 object WordOccurencerCounter extends Processor[WordOccurence] {
-  def apply(url: String, response: HttpResponse): Future[WordOccurence] = Future {
+  def apply(url: String, response: HttpResponse): Future[WordOccurence] =
     if (response.isSuccess && (response.isHTMLResource || response.isPlainTextResource))
-      WordOccurence(Map(url -> Await.result(WordCounter(url, response).map(_.wordToCount), Duration.Inf)))
+      WordCounter(url, response).map(_.wordToCount).map(count => WordOccurence(Map(url -> count)))
     else
-      WordOccurence(Map.empty)
-  }
+      Future.successful(WordOccurence(Map.empty))
 }
