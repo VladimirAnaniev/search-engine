@@ -7,7 +7,7 @@ import searchengine.html.HtmlUtils
 import searchengine.http.HttpUtils
 import searchengine.math.Monoid._
 import searchengine.math.Monoid.ops._
-import searchengine.processors.{BrokenLinkDetector, FileOutput, LinkReferences, LinkReferencesMap, WordCount, WordCounter}
+import searchengine.processors.{BrokenLinkDetector, FileOutput, LinkReferences, LinkReferencesMap, WordCount, WordCounter, WordOccurence, WordOccurencerCounter}
 import javax.management.InvalidApplicationException
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FlatSpec, Matchers}
@@ -199,6 +199,17 @@ class CrawlerTest extends FlatSpec with Matchers with ScalaFutures {
         "https://www.test1.com/service2/" -> 1,
         "https://www.test1.com/service1/" -> 1,
         "https://www.test1.com/" -> 3)
+  }
+
+  "WordOccurence" should "contain proper word occurence count" in {
+    testSpidey
+      .crawl("https://www.test5.com/",
+        SpideyConfig(25))(WordOccurencerCounter).futureValue.linkWordOccurenceMap shouldBe
+      Map(
+        "https://www.test5.com/service3/" -> Map("fuck" -> 1, "dogs" -> 1, "and" -> 1, "cats" -> 1),
+        "https://www.test5.com/service2/" -> Map("dog" -> 4, "cat" -> 2),
+        "https://www.test5.com/service1/" -> Map("dog" -> 2, "cat" -> 1),
+        "https://www.test5.com/" -> Map("dog" -> 3, "cat" -> 2))
   }
 }
 
