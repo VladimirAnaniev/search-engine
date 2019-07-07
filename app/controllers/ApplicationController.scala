@@ -10,11 +10,10 @@ class ApplicationController(cc: ControllerComponents,
                            (implicit ec: ExecutionContext)extends AbstractController(cc) {
   // Can be both def or val
   def index = Action { request =>
-    Ok(views.html.index())
+    Ok(views.html.index(List()))
   }
 
   def search(keyword: String) = Action { request =>
-
-    Ok(views.html.index())
+    Ok(views.html.index(List()))
   }
 }

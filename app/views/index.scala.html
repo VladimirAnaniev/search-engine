@@ -1,29 +1,36 @@
 @*
- * This template takes a single argument, a String containing a
- * message to display.
- *@
+* This template takes a single argument, a String containing a
+* message to display.
+*@
+@(links: List[AnyVal])
 
 @*
- * Call the `main` template with two arguments. The first
- * argument is a `String` with the title of the page, the second
- * argument is an `Html` object containing the body of the page.
- *@
+* Call the `main` template with two arguments. The first
+* argument is a `String` with the title of the page, the second
+* argument is an `Html` object containing the body of the page.
+*@
 @main("Search Engine") {
-
     @*
-     * Get an `Html` object by calling the built-in Play welcome
-     * template and passing a `String` message.
-     *@
-
+    * Get an `Html` object by calling the built-in Play welcome
+    * template and passing a `String` message.
+    *@
     <div class="ui very padded container">
         <h2 class="ui icon center aligned header">
             <i aria-hidden="true" class="searchengin icon"></i>
             <div class="content">Search Engine</div>
         </h2>
-        <div class="ui fluid icon input">
-            <input type="text" placeholder="What do you want to search for?">
-            <i class="search icon"></i>
-        </div>
+        <form class="ui form">
+            <div class="ui fluid icon input">
+                <label for="keyword"></label><input id="keyword" name="keyword" type="text" placeholder="What do you want to search for?">
+                <i class="search icon"></i>
+            </div>
+
+
+            <input type="submit" style="position: absolute; left: -9999px; width: 1px; height: 1px;" tabindex="-1" />
+        </form>
+
+@*        foreach item*@
+
     </div>
 
     <script src="assets/js/test.js"></script>
