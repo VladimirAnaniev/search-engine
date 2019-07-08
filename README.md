@@ -8,7 +8,7 @@ Written in purely functional Scala this seargine has *minimal* side effects!
 This combined with the cutting-edge technologies our team uses makes **Search Engine** the natural choice when uour curiosity has piqued.  
 
 The High Velocity Web Framework **Play** and a **Slick** Functional Relational Mapping enable us to deliver you the fastest and most reliable experience.  
-And the backbone if the whole operation is our beloved friend **Spidey**.
+And the backbone of the whole operation is our beloved friend **Spidey**.
 
 ## Architecture
 Let's get technical now!
@@ -32,7 +32,7 @@ The web server consists of the following endpoints:
 - ... And many more to come in future releases
 
 The results of the search will be ordered by relevance - Pages where the keyword is used most frequently will be displayed with higher priority.  
-In a future release we will be able to firther prioritize results by the amount of times the page is referenced by others.  
+In a future release we will be able to further prioritize results by the amount of times the page is referenced by others.  
 In another future release we will be able to show more data than just the link url - The title of the page and some related content.
 
 ## Usage
